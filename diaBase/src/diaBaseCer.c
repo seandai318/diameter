@@ -63,16 +63,24 @@ osMBuf_t* diaCxCer_encode(diaBaseCerParam_t* pCerParam, diaCmdHdrInfo_t* pCmdHdr
 		status = OS_ERROR_INVALID_VALUE;
 		goto EXIT;
 	}
-	diaEncodeAvp_t avpHostIp = {DIA_AVP_CODE_HOST_IP_ADDRESS, (diaEncodeAvpData_u)pCerParam->hostIpList->first, NULL};
-	osList_append(&cerAvpList, &avpHostIp);
+
+    diaEncodeAvp_t avpHostIp[DIA_MAX_SAME_AVP_NUM];
+    diaAvpEncode_setValue(&avpHostIp[0], DIA_AVP_CODE_HOST_IP_ADDRESS, (diaEncodeAvpData_u)pCerParam->hostIpList->first, NULL);
+	osList_append(&cerAvpList, &avpHostIp[0]);
 	if(pCerParam->hostIpList->num > 1)
 	{
 		osListElement_t* pLE = pCerParam->hostIpList->more.head;
+		int i=1;
 		while(pLE)
 		{
-			diaEncodeAvp_t avpHostIp = {DIA_AVP_CODE_HOST_IP_ADDRESS, (diaEncodeAvpData_u)pLE->data, NULL};
-			osList_append(&cerAvpList, &avpHostIp);
+			diaAvpEncode_setValue(&avpHostIp[i], DIA_AVP_CODE_HOST_IP_ADDRESS, (diaEncodeAvpData_u)pLE->data, NULL);
+			osList_append(&cerAvpList, &avpHostIp[i]);
 			pLE = pLE->next;
+			if(++i >= DIA_MAX_SAME_AVP_NUM)
+			{
+				logError("avpHostIp number(%d) exceeds DIA_MAX_SAME_AVP_NUM(%d).", i, DIA_MAX_SAME_AVP_NUM);
+				break;
+			}
 		}
 	}
 
@@ -347,16 +355,23 @@ osMBuf_t* diaCxCea_encode(diaBaseCeaParam_t* pCeaParam, diaCmdHdrInfo_t* pCmdHdr
         status = OS_ERROR_INVALID_VALUE;
         goto EXIT;
     }
-    diaEncodeAvp_t avpHostIp = {DIA_AVP_CODE_HOST_IP_ADDRESS, (diaEncodeAvpData_u)pCeaParam->hostIpList->first, NULL};
-    osList_append(&ceaAvpList, &avpHostIp);
+	diaEncodeAvp_t avpHostIp[DIA_MAX_SAME_AVP_NUM];
+    diaAvpEncode_setValue(&avpHostIp[0], DIA_AVP_CODE_HOST_IP_ADDRESS, (diaEncodeAvpData_u)pCeaParam->hostIpList->first, NULL);
+    osList_append(&ceaAvpList, &avpHostIp[0]);
     if(pCeaParam->hostIpList->num > 1)
     {
         osListElement_t* pLE = pCeaParam->hostIpList->more.head;
+		int i=1;
         while(pLE)
         {
-            diaEncodeAvp_t avpHostIp = {DIA_AVP_CODE_HOST_IP_ADDRESS, (diaEncodeAvpData_u)pLE->data, NULL};
-            osList_append(&ceaAvpList, &avpHostIp);
+			diaAvpEncode_setValue(&avpHostIp[i], DIA_AVP_CODE_HOST_IP_ADDRESS, (diaEncodeAvpData_u)pLE->data, NULL);
+            osList_append(&ceaAvpList, &avpHostIp[i]);
             pLE = pLE->next;
+            if(++i >= DIA_MAX_SAME_AVP_NUM)
+            {
+                logError("avpHostIp number(%d) exceeds DIA_MAX_SAME_AVP_NUM(%d).", i, DIA_MAX_SAME_AVP_NUM);
+                break;
+            }
         }
     }
 
@@ -492,46 +507,26 @@ osMBuf_t* diaBuildCea(diaResultCode_e resultCode, osListPlus_t* pHostIpList, uin
 
     if(pSupportedVendorId)
     {
-        osListElement_t* pLE = pSupportedVendorId->head;
-        while(pLE)
-        {
-            diaEncodeAvp_t avpSupportedId = {DIA_AVP_CODE_SUPPORTED_VENDOR_ID, (diaEncodeAvpData_u)*(uint32_t*)pLE->data, NULL};
-            osList_append(&ceaParam.optAvpList, &avpSupportedId);
-            pLE = pLE->next;
-        }
+	    diaEncodeAvp_t avpSupportedId[DIA_MAX_SAME_AVP_NUM];
+		diaAvpAddList(&ceaParam.optAvpList, pSupportedVendorId, DIA_AVP_CODE_SUPPORTED_VENDOR_ID, DIA_AVP_ENCODE_DATA_TYPE_U32, avpSupportedId);
     }
 
     if(pAuthAppId)
     {
-        osListElement_t* pLE = pAuthAppId->head;
-        while(pLE)
-        {
-            diaEncodeAvp_t avpAuthAppId = {DIA_AVP_CODE_AUTH_APP_ID, (diaEncodeAvpData_u)*(uint32_t*)pLE->data, NULL};
-            osList_append(&ceaParam.optAvpList, &avpAuthAppId);
-            pLE = pLE->next;
-        }
+		diaEncodeAvp_t avpAuthAppId[DIA_MAX_SAME_AVP_NUM];
+		diaAvpAddList(&ceaParam.optAvpList, pAuthAppId, DIA_AVP_CODE_AUTH_APP_ID, DIA_AVP_ENCODE_DATA_TYPE_U32, avpAuthAppId);
     }
 
     if(pAcctAppId)
     {
-        osListElement_t* pLE = pAcctAppId->head;
-        while(pLE)
-        {
-            diaEncodeAvp_t avpAcctAppId = {DIA_AVP_CODE_ACCT_APP_ID, (diaEncodeAvpData_u)*(uint32_t*)pLE->data, NULL};
-            osList_append(&ceaParam.optAvpList, &avpAcctAppId);
-            pLE = pLE->next;
-        }
+		diaEncodeAvp_t avpAcctAppId[DIA_MAX_SAME_AVP_NUM];
+		diaAvpAddList(&ceaParam.optAvpList, pAcctAppId, DIA_AVP_CODE_ACCT_APP_ID, DIA_AVP_ENCODE_DATA_TYPE_U32, avpAcctAppId);
     }
 
     if(pVendorSpecificAppId)
     {
-        osListElement_t* pLE = pVendorSpecificAppId->head;
-        while(pLE)
-        {
-            diaEncodeAvp_t avpVSAppId = {DIA_AVP_CODE_VENDOR_SPECIFIC_APP_ID, (diaEncodeAvpData_u)*(uint32_t*)pLE->data, NULL};
-            osList_append(&ceaParam.optAvpList, &avpVSAppId);
-            pLE = pLE->next;
-        }
+		diaEncodeAvp_t avpVSAppId[DIA_MAX_SAME_AVP_NUM];
+		diaAvpAddList(&ceaParam.optAvpList, pVendorSpecificAppId, DIA_AVP_CODE_VENDOR_SPECIFIC_APP_ID, DIA_AVP_ENCODE_DATA_TYPE_U32, avpVSAppId);
     }
 
     if(firmwareRev)

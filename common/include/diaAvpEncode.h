@@ -14,6 +14,17 @@ typedef struct diaEncodeAvpGroupedData {
 } diaEncodeAvpGroupedData_t;
 
 
+typedef enum {
+	DIA_AVP_ENCODE_DATA_TYPE_INT32,
+	DIA_AVP_ENCODE_DATA_TYPE_INT64,
+	DIA_AVP_ENCODE_DATA_TYPE_U32,
+	DIA_AVP_ENCODE_DATA_TYPE_U64,
+	DIA_AVP_ENCODE_DATA_TYPE_STR,
+	DIA_AVP_ENCODE_DATA_TYPE_GROUP,
+	DIA_AVP_ENCODE_DATA_TYPE_ENCODE_FUNC_ARG,
+} diaAvpEncodeDataType_e;
+
+
 typedef union {
     int32_t data32;
     int64_t data64;
@@ -38,6 +49,7 @@ void diaAvpEncode_setValue(diaEncodeAvp_t* pAvp, uint32_t avpCode, diaEncodeAvpD
 osStatus_e diaAvp_encodeSessionId(osMBuf_t* pDiaBuf, void* pData);
 osStatus_e diaAvp_encodeSupportedFeature(osMBuf_t* pDiaBuf, void* pData);
 osStatus_e diaAvp_encodeVendorSpecificAppId(osMBuf_t* pDiaBuf, void* pData);
+osStatus_e diaAvpAddList(osList_t* pAvpList, osList_t* pAvpData, uint32_t avpCode, diaAvpEncodeDataType_e dataType, diaEncodeAvp_t* avpMemory);
 
 
 

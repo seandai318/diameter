@@ -5,6 +5,7 @@
 #include "diaAvp.h"
 #include "diaCxAvp.h"
 #include "diaShAvp.h"
+#include "diaAvpEncode.h"
 
 
 static diaDataType_e diaBaseGetAvpInfo(diaAvpBaseCode_e avpCode, uint8_t* avpFlag);
@@ -343,3 +344,62 @@ void diaWriteU32(char* pBuf, uint32_t v)
 }
 
 
+//this is a helper function to add avp data to the diaEncodeAvp_t avpList.  It first construct a avp, then append it.  the function does not allocate memory for each avp, instead, it uses avpMemory to store the constructed avp.  avpMemory is assumed to be an array, with array size of DIA_MAX_SAME_AVP_NUM
+osStatus_e diaAvpAddList(osList_t* pAvpList, osList_t* pAvpData, uint32_t avpCode, diaAvpEncodeDataType_e dataType, diaEncodeAvp_t* avpMemory)
+{
+	osStatus_e status = OS_STATUS_OK;
+
+	if(!pAvpList ||!avpMemory)
+	{
+		logError("null pointer, pAvpList=%p, avpMemory=%p.", pAvpList, avpMemory);
+		status = OS_ERROR_NULL_POINTER;
+		goto EXIT;
+	}
+
+	if(!pAvpData)
+	{
+		debug("avpData is NULL, do nothing.");
+		goto EXIT;
+	}
+
+	osListElement_t* pLE = pAvpData->head;
+	int i=0;
+	while(pLE)
+	{
+		switch(dataType)
+		{
+		    case DIA_AVP_ENCODE_DATA_TYPE_INT32:
+				diaAvpEncode_setValue(&avpMemory[i], avpCode, (diaEncodeAvpData_u)*(int32_t*)pLE->data, NULL);
+				break;
+    		case DIA_AVP_ENCODE_DATA_TYPE_INT64:
+               	diaAvpEncode_setValue(&avpMemory[i], avpCode, (diaEncodeAvpData_u)*(int64_t*)pLE->data, NULL);
+                break;
+    		case DIA_AVP_ENCODE_DATA_TYPE_U32:
+				diaAvpEncode_setValue(&avpMemory[i], avpCode, (diaEncodeAvpData_u)*(uint32_t*)pLE->data, NULL);
+				break;
+    		case DIA_AVP_ENCODE_DATA_TYPE_U64:
+				diaAvpEncode_setValue(&avpMemory[i], avpCode, (diaEncodeAvpData_u)*(uint64_t*)pLE->data, NULL);
+                break;
+    		case DIA_AVP_ENCODE_DATA_TYPE_STR:
+    		case DIA_AVP_ENCODE_DATA_TYPE_GROUP:
+				diaAvpEncode_setValue(&avpMemory[i], avpCode, (diaEncodeAvpData_u)pLE->data, NULL);
+				break;
+			default:
+				logError("dataType(%d) is not supported.", dataType);
+				status = OS_ERROR_INVALID_VALUE;
+				goto EXIT;
+		}
+
+		osList_append(pAvpList, &avpMemory[i]);
+		pLE = pLE->next;
+        if(++i >= DIA_MAX_SAME_AVP_NUM)
+        {
+        	logInfo("avpCode(%d) number(%d) exceeds DIA_MAX_SAME_AVP_NUM(%d), the exceeded avps are not appended to the pAvpList.", avpCode, i, DIA_MAX_SAME_AVP_NUM);
+			status = OS_ERROR_INVALID_VALUE;
+            break;
+        }
+	}
+
+EXIT:
+	return status;
+}
