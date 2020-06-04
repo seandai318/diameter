@@ -47,7 +47,11 @@ osStatus_e diaConnMgr_init()
 	}
 
 	diaIntfInfo_t cxIfInfo = {-1, DIA_INTF_TYPE_CX};
-	diaConnProv_t cxProv = {{{"127.0.0.1", 9}, 3868}, true, true, false};
+	diaConnProv_t cxProv;
+	diaConfig_getPeer(DIA_INTF_TYPE_CX, &cxProv.peerIpPort);
+	cxProv.isPriority = true;
+	cxProv.isEnabled = true;
+	cxProv.isServer = true;
 	diaConnProv(&cxIfInfo, &cxProv);
 
 EXIT:

@@ -66,6 +66,22 @@ void diaConfig_getHost1(struct sockaddr_in* pHost)
 }
 
 
+void diaConfig_getPeer(diaIntfType_e intfType, osIpPort_t* pPeer)
+{
+	if(!pPeer)
+	{
+		logError("null pointer, pPeer.");
+		return;
+	}
+
+	pPeer->ip.p = DIA_CONFIG_PEER_IP;
+	pPeer->ip.l = strlen(DIA_CONFIG_PEER_IP);
+	pPeer->port = DIA_CONFIG_PEER_PORT;
+
+	return;
+}
+
+
 bool diaConfig_isServer()
 {
 	return DIA_IS_SERVER;

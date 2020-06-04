@@ -222,6 +222,9 @@ osStatus_e diaConnStateServerClosed_onMsg(diaConnMsgType_e msgType, diaConnBlock
 
     switch(msgType)
     {
+        case DIA_CONN_MSG_TYPE_FORCE_CONN:
+			//do nothing, as TCP listening is handled in the mas startup routine
+			break;
 		case DIA_CONN_MSG_TYPE_RCV_CER:
             status = diaConnProcessCer(pDiaDecoded, pDcb);
             if(status == OS_STATUS_OK)

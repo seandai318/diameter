@@ -26,6 +26,8 @@
 
 #define DIA_CONFIG_LOCAL_IP		"192.168.1.86"
 #define DIA_CONFIG_LISTEN_PORT	3868
+#define DIA_CONFIG_PEER_IP		"192.168.1.65"
+#define DIA_CONFIG_PEER_PORT	0
 
 #define DIA_CONN_TIMER_WAIT_CONN			60000		//started a connection, wait the conn to be established
 #define DIA_CONN_TIMER_RETRY_CONN			120000		//conn is down, retry new conn
@@ -46,6 +48,8 @@ void diaConfig_getHostRealm(diaRealmHost_t* pRealmHost);
 bool diaConfig_isServer();
 void diaConfig_getHost(osPointerLen_t* host, int* port);
 void diaConfig_getHost1(struct sockaddr_in* pHost);
+void diaConfig_getPeer(diaIntfType_e intfType, osIpPort_t* pPeer);
+
 
 osListPlus_t* diaConfig_getHostIpList(diaIntfType_e intfType, osListPlus_t* pList);
 osVPointerLen_t* diaConfig_getProductName(diaIntfType_e intfType, osVPointerLen_t* pProductName);
