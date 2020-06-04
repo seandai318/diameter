@@ -51,7 +51,7 @@ osStatus_e diaConnMgr_init()
 	diaConfig_getPeer(DIA_INTF_TYPE_CX, &cxProv.peerIpPort);
 	cxProv.isPriority = true;
 	cxProv.isEnabled = true;
-	cxProv.isServer = true;
+	cxProv.isServer = diaConfig_isServer();
 	diaConnProv(&cxIfInfo, &cxProv);
 
 EXIT:
@@ -179,6 +179,7 @@ osStatus_e diaConnProv(diaIntfInfo_t* pIntfInfo, diaConnProv_t* pConnProv)
 		}
 
 		pIntfInfo->intfId = intfNum++;
+		//this will lead the entering of state machine
 		diaConnAddNewPeer(&gDiaConnIntf[pIntfInfo->intfId], pIntfInfo, pConnProv);
 	}
 	else
@@ -191,6 +192,7 @@ osStatus_e diaConnProv(diaIntfInfo_t* pIntfInfo, diaConnProv_t* pConnProv)
         }
 
 		//to-do, perform necessary sanity check to make sure nee peer matches with the existing peer
+		//this will lead the entering of state machine
 		diaConnAddNewPeer(&gDiaConnIntf[pIntfInfo->intfId], pIntfInfo, pConnProv);
 	}
 
