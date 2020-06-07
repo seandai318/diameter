@@ -47,6 +47,8 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
         goto EXIT;
     }
 
+	logInfo("received a pTpMsg, msgType=%d, pDcb=%p.", pTpMsg->tpMsgType, pDcb);
+
 	diaMsgDecoded_t* pDiaDecoded = NULL;
 	if(pTpMsg->tpMsgType == DIA_TRANSPORT_MSG_TYPE_PEER_MSG)
     {
@@ -152,6 +154,7 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 	transportStatus_e tpStatus = transport_send(TRANSPORT_APP_TYPE_DIAMETER, pDcb, &pDcb->tpInfo, pBuf, NULL);
 	if(tpStatus == TRANSPORT_STATUS_TCP_FAIL || tpStatus == TRANSPORT_STATUS_FAIL)
 	{
+		//take no further action, expect transport to send a seperate notify message
 		logInfo("fails to transport_send(%d).", tpStatus);
 		status = OS_ERROR_NETWORK_FAILURE;
 	}
