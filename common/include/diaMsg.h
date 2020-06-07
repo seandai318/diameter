@@ -21,11 +21,6 @@
 #define DIA_AVP_VENDOR_ID_3GPP  10415
 #define DIA_AVP_AUTH_APP_ID     16777216
 
-#define DIA_CMD_FLAG_T_RETRANSMISSION	0x10
-#define DIA_CMD_FLAG_ERROR				0x20
-#define DIA_CMD_FLAG_PROXYAVLE			0x40
-#define DIA_CMD_FLAG_REQUEST			0x80
-
 typedef enum {
     DIA_VENDOR_ID_RESERVED = 0,
     DIA_VENDOR_ID_ERICSSON = 193,
@@ -43,6 +38,13 @@ typedef enum {
     DIA_APP_ID_3GPP_RX = 16777236,
     DIA_APP_ID_3GPP_GX = 16777238,
 } diaAppId_e;
+
+typedef enum {
+	DIA_CMD_FLAG_REQUEST 			= 0x80,
+	DIA_CMD_FLAG_PROXYABLE 			= 0x40,
+	DIA_CMD_FLAG_ERROR 				= 0x20,
+	DIA_CMD_FLAG_T_RETRANSMISSION 	= 0x10,
+} diaCmdFlag_e;
 
 
 typedef enum diaCmdCode {
@@ -116,7 +118,7 @@ diaMsgDecoded_t* diaMsg_decode(osMBuf_t* pDiaBuf);
 //pAvpList contains list of diaEncodeAvp_t
 osMBuf_t* diaMsg_encode(diaCmdCode_e cmdCode, uint8_t cmdFlag, uint32_t appId, osList_t* pAvpList, diaCmdHdrInfo_t* pHdrInfo);
 diaResultCode_e dia_GetResultCode(diaMsgDecoded_t* pMsgDecoded);
-osStatus_e dia_encodeHdr(osMBuf_t* pDiaBuf, bool isReq, uint32_t cmd, uint32_t len, uint32_t appId, uint32_t* pH2hId, uint32_t* pE2eId);
+osStatus_e dia_encodeHdr(osMBuf_t* pDiaBuf, uint8_t cmdFlag, uint32_t cmd, uint32_t len, uint32_t appId, uint32_t* pH2hId, uint32_t* pE2eId);
 osStatus_e diaMsg_updateCmdFlagR(osMBuf_t* pDiaBuf, bool isSet);
 osStatus_e diaMsg_updateCmdFlagP(osMBuf_t* pDiaBuf, bool isSet);
 osStatus_e diaMsg_updateCmdFlagE(osMBuf_t* pDiaBuf, bool isSet);

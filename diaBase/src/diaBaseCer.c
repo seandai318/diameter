@@ -475,7 +475,7 @@ logError("to-remove, Vendor-Specific-Application-Id exists, pOptAvp=%p.", pOptAv
         }
     }
 
-    pDiaBuf = diaMsg_encode(DIA_CMD_CODE_CER, 0x80, DIA_APP_ID_BASE, &ceaAvpList, pCmdHdrInfo);
+    pDiaBuf = diaMsg_encode(DIA_CMD_CODE_CER, 0x00, DIA_APP_ID_BASE, &ceaAvpList, pCmdHdrInfo);
 
 EXIT:
     return pDiaBuf;

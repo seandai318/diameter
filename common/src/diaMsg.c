@@ -113,7 +113,7 @@ debug("to-remove, pos=%ld, avp=%d", pDiaMsg->pos, pAvp->avpCode);
 		pLE = pLE->next;
     }
 
-	dia_encodeHdr(pDiaMsg, true, cmdCode, pDiaMsg->pos, appId, &pHdrInfo->h2hId, &pHdrInfo->e2eId);
+	dia_encodeHdr(pDiaMsg, cmdFlag, cmdCode, pDiaMsg->pos, appId, &pHdrInfo->h2hId, &pHdrInfo->e2eId);
 
 EXIT:
     if(status != OS_STATUS_OK)
@@ -149,11 +149,12 @@ EXIT:
 
 
 //by default, flag P is set, E, T has to be set explicitly
-osStatus_e dia_encodeHdr(osMBuf_t* pDiaBuf, bool isReq, uint32_t cmd, uint32_t len, uint32_t appId, uint32_t* pH2hId, uint32_t* pE2eId)
+osStatus_e dia_encodeHdr(osMBuf_t* pDiaBuf, uint8_t cmdFlag, uint32_t cmd, uint32_t len, uint32_t appId, uint32_t* pH2hId, uint32_t* pE2eId)
 {
 	static uint32_t h2hId;
     static pthread_mutex_t h2hMutex = PTHREAD_MUTEX_INITIALIZER;
 
+	bool isReq = cmdFlag & DIA_CMD_FLAG_REQUEST;
 	uint32_t h2hIdValue = 0;
 	uint32_t e2eIdValue = 0;
 	osStatus_e status = OS_STATUS_OK;
@@ -164,7 +165,7 @@ osStatus_e dia_encodeHdr(osMBuf_t* pDiaBuf, bool isReq, uint32_t cmd, uint32_t l
 		return OS_ERROR_NULL_POINTER;
 	}
 
-	if(!isReq && (!pH2hId || !pE2eId))
+	if(isReq && (!pH2hId || !pE2eId))
 	{
 		logError("isResponse, but null pointer, pH2hId=%p, pE2eId=%p.", pH2hId, pE2eId);
 		return OS_ERROR_NULL_POINTER;
@@ -174,7 +175,8 @@ osStatus_e dia_encodeHdr(osMBuf_t* pDiaBuf, bool isReq, uint32_t cmd, uint32_t l
 	pDiaBuf->pos = 0;
 
 	osMBuf_writeU32(pDiaBuf, htobe32(1<<24 | len & 0xffffff), true);
-	osMBuf_writeU32(pDiaBuf, isReq ? htobe32(0xc0 <<24 | cmd & 0xffffff) : htobe32(0x80 <<24 | cmd & 0xffffff), true);
+	osMBuf_writeU32(pDiaBuf, htobe32(cmdFlag <<24 | cmd & 0xffffff), true);
+//	osMBuf_writeU32(pDiaBuf, isReq ? htobe32(0xc0 <<24 | cmd & 0xffffff) : htobe32(0x80 <<24 | cmd & 0xffffff), true);
 	osMBuf_writeU32(pDiaBuf, htobe32(appId), true);
 
 	if(isReq)
