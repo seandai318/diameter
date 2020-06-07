@@ -249,6 +249,7 @@ osList_t* diaConfig_getVendorSpecificAppId(diaIntfType_e intfType, osList_t* pVS
     }
 
 	diaEncodeAvp_t* pGrpAvp = diaAvpGrp_create(DIA_AVP_CODE_VENDOR_SPECIFIC_APP_ID);
+logError("to-remove, grpAvpData=%p", pGrpAvp->avpData.pDataGrouped);
 	diaAvpGrp_addAvp(pGrpAvp, DIA_AVP_CODE_VENDOR_ID, vendorAvpData, NULL);
 	diaAvpGrp_addAvp(pGrpAvp, DIA_AVP_CODE_AUTH_APP_ID, authAvpData, NULL); 
     osList_append(pVSAppId, pGrpAvp);

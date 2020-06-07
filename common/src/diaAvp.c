@@ -167,24 +167,24 @@ debug("to-remove, avpFlag=0x%x, avpCode=%d", avpFlag, avpCode);
 }
 
 
-osStatus_e diaAvp_encodeGrouped(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t avpCode, uint8_t avpFlag, diaAvpVendor_e vendorId, diaEncodeAvpGroupedData_t* groupAvpList)
+osStatus_e diaAvp_encodeGrouped(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t avpCode, uint8_t avpFlag, diaAvpVendor_e vendorId, diaEncodeAvpGroupedData_t* groupAvpData)
 {
     osStatus_e status = OS_STATUS_OK;
 
-    if(!pDiaBuf || !groupAvpList)
+    if(!pDiaBuf || !groupAvpData)
     {
-        logError("null pointer, pDiaBuf=%p, groupAvpList=%p.", pDiaBuf, groupAvpList);
+        logError("null pointer, pDiaBuf=%p, groupAvpData=%p.", pDiaBuf, groupAvpData);
         status = OS_ERROR_NULL_POINTER;
 		goto EXIT;
     }
-debug("to-remove, avpFlag=0x%x, avpCode=%d", avpFlag, avpCode);
+debug("to-remove, avpFlag=0x%x, avpCode=%d, groupAvpData=%p", avpFlag, avpCode, groupAvpData);
 
 	size_t avpStartPos = pDiaBuf->pos;
 	pDiaBuf->pos += avpFlag & DIA_AVP_FLAG_VENDOR_SPECIFIC ? 12 : 8;
 
-	for(int i=0; i<groupAvpList->avpNum; i++)
+	for(int i=0; i<groupAvpData->avpNum; i++)
 	{
-		status = diaAvp_encode(pDiaBuf, diaCmd, groupAvpList->pDiaAvp[i].avpCode, groupAvpList->pDiaAvp[i].avpData);
+		status = diaAvp_encode(pDiaBuf, diaCmd, groupAvpData->pDiaAvp[i].avpCode, groupAvpData->pDiaAvp[i].avpData);
 	}
 
 	size_t avpEndPos = pDiaBuf->pos;
@@ -213,6 +213,8 @@ EXIT:
 
 osStatus_e diaAvp_decode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t* avpCode, uint8_t* avpFlag, uint32_t* vendorId, diaAvpData_t* pAvpData)
 {
+	DEBUG_BEGIN
+
     osStatus_e status = OS_STATUS_OK;
 
     if(!pDiaBuf || !avpCode || !avpFlag || !vendorId || !pAvpData)
@@ -229,18 +231,20 @@ osStatus_e diaAvp_decode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t* avpCo
 		goto EXIT;
 	}
 
+	debug("start avp decode, pos=%ld", pDiaBuf->pos);
+
 	size_t startAvpPos = pDiaBuf->pos;
 	size_t avpLen;
 
 	*avpCode = htobe32(*(uint32_t*)&pDiaBuf->buf[pDiaBuf->pos]); 
-	pDiaBuf->pos == 4;
+	pDiaBuf->pos += 4;
 	*avpFlag = pDiaBuf->buf[pDiaBuf->pos];
-	avpLen = htobe32(*(uint32_t*)&pDiaBuf->buf[pDiaBuf->pos] & 0xffffff);
-    pDiaBuf->pos == 4;
+	avpLen = htobe32(*(uint32_t*)&pDiaBuf->buf[pDiaBuf->pos]) & 0xffffff;
+    pDiaBuf->pos += 4;
 	if(*avpFlag & DIA_AVP_FLAG_VENDOR_SPECIFIC)
 	{
 		*vendorId = htobe32(*(uint32_t*)&pDiaBuf->buf[pDiaBuf->pos]);
-	    pDiaBuf->pos == 4;
+	    pDiaBuf->pos += 4;
 	}
 	else
 	{
@@ -275,9 +279,11 @@ osStatus_e diaAvp_decode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t* avpCo
 			break;
 	}
 
-    pDiaBuf->pos = startAvpPos + avpLen + avpLen%4 ? 4 - avpLen%4 : 0;
+    pDiaBuf->pos = startAvpPos + avpLen + (avpLen%4 ? (4 - avpLen%4) : 0);
 
+	debug("decoded avp code(%d), avp len=%d, vendorId=0x%x, pos=%ld.", *avpCode, avpLen, *vendorId, pDiaBuf->pos);
 EXIT:
+	DEBUG_END
 	return status;
 }
 

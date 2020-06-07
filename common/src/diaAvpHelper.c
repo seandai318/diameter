@@ -381,8 +381,10 @@ osStatus_e diaAvpAddList(osList_t* pAvpList, osList_t* pAvpData, uint32_t avpCod
 				diaAvpEncode_setValue(&avpMemory[i], avpCode, (diaEncodeAvpData_u)*(uint64_t*)pLE->data, NULL);
                 break;
     		case DIA_AVP_ENCODE_DATA_TYPE_STR:
-    		case DIA_AVP_ENCODE_DATA_TYPE_GROUP:
 				diaAvpEncode_setValue(&avpMemory[i], avpCode, (diaEncodeAvpData_u)pLE->data, NULL);
+				break;
+            case DIA_AVP_ENCODE_DATA_TYPE_GROUP:
+                diaAvpEncode_setValue(&avpMemory[i], avpCode, ((diaEncodeAvp_t*)pLE->data)->avpData, NULL);
 				break;
 			default:
 				logError("dataType(%d) is not supported.", dataType);
@@ -398,6 +400,7 @@ osStatus_e diaAvpAddList(osList_t* pAvpList, osList_t* pAvpData, uint32_t avpCod
 			status = OS_ERROR_INVALID_VALUE;
             break;
         }
+logError("to-remove, avpCode=%d, i=%d, memory=%p.", avpCode, i, &avpMemory[i-1]);
 	}
 
 EXIT:

@@ -45,6 +45,8 @@ diaMsgDecoded_t* diaMsg_decode(osMBuf_t* pDiaBuf)
         goto EXIT;
     }
 
+logError("to-remove, cmdCode=%d, cmdFlag=0x%x, len=%d, pos=%d.", pMsgDecoded->cmdCode, pMsgDecoded->cmdFlag, pMsgDecoded->len, pDiaBuf->pos);
+
     while(pDiaBuf->pos < pDiaBuf->end)
     {
         diaAvp_t* pAvp = oszalloc(sizeof(diaAvp_t), diaAvp_cleanup);
@@ -228,6 +230,8 @@ osStatus_e diaMsg_decodeHdr(osMBuf_t* pDiaBuf, uint32_t* cmd, uint8_t* cmdFlag, 
 	*appId = htobe32(*(uint32_t*)&pDiaBuf->buf[8]);
 	*h2hId = htobe32(*(uint32_t*)&pDiaBuf->buf[12]);
 	*e2eId = htobe32(*(uint32_t*)&pDiaBuf->buf[16]);
+
+	pDiaBuf->pos = 20;
 
 	return status;
 }

@@ -134,6 +134,7 @@ osStatus_e diaConnMgr_onMsg(diaConnBlock_t* pDcb, diaTransportMsg_t* pTpMsg, dia
 				msgType = DIA_CONN_MSG_TYPE_TRANSPORT_READY;
 				pDcb->tcpFd = pTpMsg->connStatusMsg.fd;
 				pDcb->tpInfo.tcpFd = pTpMsg->connStatusMsg.fd;
+				pDcb->tpInfo.peer = pTpMsg->peer;
 				break;
 			case TRANSPORT_STATUS_TCP_FAIL:
     		case TRANSPORT_STATUS_FAIL:
@@ -407,6 +408,12 @@ static osStatus_e diaConnAddNewPeer(diaConnIntf_t* pConnIntf, diaIntfInfo_t* pIn
 		logError("fails to osmalloc for pDcb.");
 		return OS_ERROR_SYSTEM_FAILURE;
 	}
+
+	logInfo("a pDcb(%p) is created.", pDcb);
+
+    pDcb->tpInfo.isCom = true;
+    pDcb->tpInfo.tpType = TRANSPORT_TYPE_TCP;
+    pDcb->tpInfo.tcpFd = -1;
 
 	pDcb->ifType = pIntfInfo->intfType;
 	osConvertPLton(&pConnProv->peerIpPort, true, &pDcb->tpInfo.peer);
