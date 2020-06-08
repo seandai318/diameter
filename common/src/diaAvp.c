@@ -98,7 +98,7 @@ debug("to-remove, vendorId=0x%x", vendorId);
 	uint8_t remaining = str->l % 4;
 	if(remaining)
 	{
-		pDiaBuf->pos += (4 - remaining);	
+		osMBuf_setZero(pDiaBuf, 4 - remaining, true);
 	}
 
 	return status;
