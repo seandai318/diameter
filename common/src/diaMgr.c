@@ -9,6 +9,7 @@
 #include "diaConnState.h"
 #include "diaConnMgr.h"
 #include "diaBaseCer.h"
+#include "diaBaseDwr.h"
 
 
 //the number of seconds since the start of the Unix epoch at ~20200426, UTC 16:15:00
@@ -128,7 +129,6 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 
 			if(isReq)
 			{
-				diaCmdHdrInfo_t cmdHdrInfo;
 				pBuf = diaBuildCer(pHostIpList, vendorId, &productName->pl, pSupportedVendorId, pAuthAppId, pAcctAppId, pVendorSpecificAppId, isFWRevExist ? &firmwareRev : NULL, NULL, &pDcb->cmdHdrInfo);
 			}
 			else
@@ -144,6 +144,15 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 			break;
 		}
 		case DIA_CMD_CODE_DWR:
+            if(isReq)
+            {
+                diaCmdHdrInfo_t cmdHdrInfo;
+                pBuf = diaBuildDwr(NULL, &pDcb->cmdHdrInfo);
+            }
+            else
+            {
+                pBuf = diaBuildDwa(resultCode, NULL, NULL, NULL, &pDcb->cmdHdrInfo);
+            }
 		case DIA_CMD_CODE_DPR:	
 			break;
 	}
