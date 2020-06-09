@@ -367,11 +367,11 @@ osStatus_e diaConnStateOpen_onMsg(diaConnMsgType_e msgType, diaConnBlock_t* pDcb
             	pDcb->timerId_watchdog = diaStartTimer(DIA_CONN_TIMER_WATCHDOG, pDcb);
 			}
             pDcb->isWaitDwa = false;
-	
+			break;	
 		case DIA_CONN_MSG_TYPE_TIMEOUT:
 			if(timerId != pDcb->timerId_watchdog)
 			{
-				logError("timerId(0x%x) is ignored.", timerId);
+				logError("timerId(0x%lx) is ignored.", timerId);
 				goto EXIT;
 			}
 

@@ -157,7 +157,7 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 			break;
 	}
 
-	debug("send diameter message for pDcb(%p), tcpFd=%d, message=", pDcb, pDcb->tcpFd);
+	debug("send diameter common message(cmd=%d, isReq=%d) for pDcb(%p), tcpFd=%d, message=", cmd, isReq, pDcb, pDcb->tcpFd);
 	hexdump(stdout, pBuf->buf, pBuf->end);
 
 	transportStatus_e tpStatus = transport_send(TRANSPORT_APP_TYPE_DIAMETER, pDcb, &pDcb->tpInfo, pBuf, NULL);

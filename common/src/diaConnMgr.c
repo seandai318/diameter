@@ -72,7 +72,7 @@ osStatus_e diaConnMgr_onMsg(diaConnBlock_t* pDcb, diaTransportMsg_t* pTpMsg, dia
     diaConnMsgType_e msgType = DIA_CONN_MSG_TYPE_NONE;
 	if(pTpMsg->tpMsgType == DIA_TRANSPORT_MSG_TYPE_PEER_MSG)
 	{
-		debug("received peerMsg, cmdCode=%d, for pDcb(%p).", pDiaDecoded->cmdCode, pDcb);
+		debug("received peerMsg, cmdCode=%d, isReq=%d, for pDcb(%p).", pDiaDecoded->cmdCode, pDiaDecoded->cmdFlag & DIA_CMD_FLAG_REQUEST, pDcb);
 		if(!pDiaDecoded)
 		{
 			logError("pDiaDecoded is NULL for DIA_TRANSPORT_MSG_TYPE_PEER_MSG.");
