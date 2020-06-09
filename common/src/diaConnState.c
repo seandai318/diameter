@@ -230,6 +230,10 @@ osStatus_e diaConnStateServerClosed_onMsg(diaConnMsgType_e msgType, diaConnBlock
             if(status == OS_STATUS_OK)
             {
 				diaSendCommonMsg(pDcb->ifType, pDcb, DIA_CMD_CODE_CER, false, DIA_RESULT_CODE_DIAMETER_SUCCESS); 
+
+	            pDcb->timerId_watchdog = diaStartTimer(DIA_CONN_TIMER_WATCHDOG, pDcb);
+    	        pDcb->isWaitDwa = false;
+
 				diaConnStateEnterState(DIA_CONN_STATE_OPEN, DIA_CONN_MSG_TYPE_RCV_CER, pDcb);
 			}
             break;
@@ -351,6 +355,19 @@ osStatus_e diaConnStateOpen_onMsg(diaConnMsgType_e msgType, diaConnBlock_t* pDcb
 			pDcb->isWaitDwa = false;
 			osRestartTimer(pDcb->timerId_watchdog);
 			break;
+		case DIA_CONN_MSG_TYPE_RCV_DWR:
+            diaSendCommonMsg(pDcb->ifType, pDcb, DIA_CMD_CODE_DWR, false, DIA_RESULT_CODE_DIAMETER_SUCCESS);
+
+			if(pDcb->timerId_watchdog)
+			{
+            	osRestartTimer(pDcb->timerId_watchdog);
+			}
+			else
+			{
+            	pDcb->timerId_watchdog = diaStartTimer(DIA_CONN_TIMER_WATCHDOG, pDcb);
+			}
+            pDcb->isWaitDwa = false;
+	
 		case DIA_CONN_MSG_TYPE_TIMEOUT:
 			if(timerId != pDcb->timerId_watchdog)
 			{
@@ -361,15 +378,17 @@ osStatus_e diaConnStateOpen_onMsg(diaConnMsgType_e msgType, diaConnBlock_t* pDcb
 			if(pDcb->isWaitDwa)
 			{
 				diaconnMgr_notifyFailover(pDcb);
-				pDcb->timerId_watchdog = diaStartTimer(DIA_CONN_TIMER_WATCHDOG, pDcb);
+				pDcb->isWaitDwa = false;
+	            pDcb->timerId_watchdog = diaStartTimer(DIA_CONN_TIMER_WATCHDOG, pDcb);
+
+    	        diaConnStateEnterState(DIA_CONN_STATE_SUSPECT, DIA_CONN_MSG_TYPE_TIMEOUT, pDcb);
 			}
 			else
 			{
 				diaSendCommonMsg(pDcb->ifType, pDcb, DIA_CMD_CODE_DWR, true, DIA_RESULT_CODE_NONE);
+                pDcb->timerId_watchdog = diaStartTimer(DIA_CONN_TIMER_WATCHDOG, pDcb);
 				pDcb->isWaitDwa = true;
 			}
-
-            diaConnStateEnterState(DIA_CONN_STATE_SUSPECT, DIA_CONN_MSG_TYPE_TIMEOUT, pDcb);
 			break;
 		case DIA_CONN_MSG_TYPE_STOP_CONN:
 			if(pDcb->timerId_watchdog)
