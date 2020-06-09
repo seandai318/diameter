@@ -353,14 +353,14 @@ osStatus_e diaConnStateOpen_onMsg(diaConnMsgType_e msgType, diaConnBlock_t* pDcb
 		case DIA_CONN_MSG_TYPE_RCV_DWA:
         case DIA_CONN_MSG_TYPE_RCV_TRAFFIC_MSG:
 			pDcb->isWaitDwa = false;
-			osRestartTimer(pDcb->timerId_watchdog);
+			pDcb->timerId_watchdog = osRestartTimer(pDcb->timerId_watchdog);
 			break;
 		case DIA_CONN_MSG_TYPE_RCV_DWR:
             diaSendCommonMsg(pDcb->ifType, pDcb, DIA_CMD_CODE_DWR, false, DIA_RESULT_CODE_DIAMETER_SUCCESS);
 
 			if(pDcb->timerId_watchdog)
 			{
-            	osRestartTimer(pDcb->timerId_watchdog);
+				pDcb->timerId_watchdog = osRestartTimer(pDcb->timerId_watchdog);
 			}
 			else
 			{
@@ -456,7 +456,7 @@ osStatus_e diaConnStateSuspect_onMsg(diaConnMsgType_e msgType, diaConnBlock_t* p
             diaconnMgr_notifyFailback(pDcb);
 
             pDcb->isWaitDwa = false;
-            osRestartTimer(pDcb->timerId_watchdog);
+            pDcb->timerId_watchdog = osRestartTimer(pDcb->timerId_watchdog);
 
 			diaConnStateEnterState(DIA_CONN_STATE_OPEN, msgType, pDcb);
             break;
@@ -464,7 +464,7 @@ osStatus_e diaConnStateSuspect_onMsg(diaConnMsgType_e msgType, diaConnBlock_t* p
 		case DIA_CONN_MSG_TYPE_TRANSPORT_DOWN:
 			if(pDcb->timerId_watchdog)
 			{
-				osRestartTimer(pDcb->timerId_watchdog);
+				pDcb->timerId_watchdog = osRestartTimer(pDcb->timerId_watchdog);
 			}
 			else
 			{
@@ -627,7 +627,7 @@ osStatus_e diaConnStateReopen_onMsg(diaConnMsgType_e msgType, diaConnBlock_t* pD
 				diaConnStateEnterState(DIA_CONN_STATE_OPEN, DIA_CONN_MSG_TYPE_RCV_DWA, pDcb);
 				diaconnMgr_notifyFailback(pDcb);
 
-				osRestartTimer(pDcb->timerId_watchdog);
+				pDcb->timerId_watchdog = osRestartTimer(pDcb->timerId_watchdog);
 			}
 			break;
 		case DIA_CONN_MSG_TYPE_TIMEOUT:
@@ -662,7 +662,7 @@ osStatus_e diaConnStateReopen_onMsg(diaConnMsgType_e msgType, diaConnBlock_t* pD
 		case DIA_CONN_MSG_TYPE_TRANSPORT_DOWN:
             if(pDcb->timerId_watchdog)
             {
-                osRestartTimer(pDcb->timerId_watchdog);
+                pDcb->timerId_watchdog = osRestartTimer(pDcb->timerId_watchdog);
             }
             else
             {
