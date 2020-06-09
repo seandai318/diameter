@@ -180,7 +180,7 @@ osMBuf_t* diaCxDwa_encode(diaBaseDwaParam_t* pDwaParam, diaCmdHdrInfo_t* pCmdHdr
         }
     }
 
-    pDiaBuf = diaMsg_encode(DIA_CMD_CODE_CER, 0x00, DIA_APP_ID_BASE, &ceaAvpList, pCmdHdrInfo);
+    pDiaBuf = diaMsg_encode(DIA_CMD_CODE_DWR, 0x00, DIA_APP_ID_BASE, &ceaAvpList, pCmdHdrInfo);
 
 EXIT:
     return pDiaBuf;
