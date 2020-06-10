@@ -395,7 +395,6 @@ osMBuf_t* diaCxCea_encode(diaBaseCeaParam_t* pCeaParam, diaCmdHdrInfo_t* pCmdHdr
             break;
         }
 
-logError("to-remove, supported-vendor-id exists.");
         osList_append(&ceaAvpList, pOptAvp);
     }
 
@@ -408,7 +407,6 @@ logError("to-remove, supported-vendor-id exists.");
             break;
         }
 
-logError("to-remove, Auth-Application-Id exists.");
         osList_append(&ceaAvpList, pOptAvp);
     }
 
@@ -433,7 +431,6 @@ logError("to-remove, Auth-Application-Id exists.");
             break;
         }
 
-logError("to-remove, Vendor-Specific-Application-Id exists, pOptAvp=%p.", pOptAvp);
         osList_append(&ceaAvpList, pOptAvp);
     }
 
@@ -508,33 +505,24 @@ osMBuf_t* diaBuildCea(diaResultCode_e resultCode, osListPlus_t* pHostIpList, uin
     diaEncodeAvp_t avpSupportedId[DIA_MAX_SAME_AVP_NUM];
     if(pSupportedVendorId)
     {
-//	    diaEncodeAvp_t avpSupportedId[DIA_MAX_SAME_AVP_NUM];
-logError("to-remove, avpSupportedId[0]=%p.", avpSupportedId);
 		diaAvpAddList(&ceaParam.optAvpList, pSupportedVendorId, DIA_AVP_CODE_SUPPORTED_VENDOR_ID, DIA_AVP_ENCODE_DATA_TYPE_U32, avpSupportedId);
     }
 
     diaEncodeAvp_t avpAuthAppId[DIA_MAX_SAME_AVP_NUM];
-logError("to-remove, pAuthAppId=%p.", pAuthAppId);
     if(pAuthAppId)
     {
-//		diaEncodeAvp_t avpAuthAppId[DIA_MAX_SAME_AVP_NUM];
-logError("to-remove, avpAuthAppId[0]=%p, [1]=%p.", avpAuthAppId, &avpAuthAppId[1]);
 		diaAvpAddList(&ceaParam.optAvpList, pAuthAppId, DIA_AVP_CODE_AUTH_APP_ID, DIA_AVP_ENCODE_DATA_TYPE_U32, avpAuthAppId);
     }
 
     diaEncodeAvp_t avpAcctAppId[DIA_MAX_SAME_AVP_NUM];
     if(pAcctAppId)
     {
-//		diaEncodeAvp_t avpAcctAppId[DIA_MAX_SAME_AVP_NUM];
 		diaAvpAddList(&ceaParam.optAvpList, pAcctAppId, DIA_AVP_CODE_ACCT_APP_ID, DIA_AVP_ENCODE_DATA_TYPE_U32, avpAcctAppId);
     }
 
     diaEncodeAvp_t avpVSAppId[DIA_MAX_SAME_AVP_NUM];
-logError("to-remove, pVendorSpecificAppId=%p", pVendorSpecificAppId);
     if(pVendorSpecificAppId)
     {
-//		diaEncodeAvp_t avpVSAppId[DIA_MAX_SAME_AVP_NUM];
-logError("to-remove, avpVSAppId=%p.", avpVSAppId);
 		diaAvpAddList(&ceaParam.optAvpList, pVendorSpecificAppId, DIA_AVP_CODE_VENDOR_SPECIFIC_APP_ID, DIA_AVP_ENCODE_DATA_TYPE_GROUP, avpVSAppId);
     }
 

@@ -267,21 +267,18 @@ diaDataType_e diaGetAvpDataType(uint32_t avpCode)
 	dataType = diaBaseGetAvpInfo(avpCode, NULL);
 	if(dataType != DIA_AVP_DATA_TYPE_UNKNOWN)
 	{
-logError("to-remove, 1");
 		goto EXIT;
 	}
 		
 	dataType = diaCxGetAvpInfo(avpCode, NULL, NULL);
 	if(dataType != DIA_AVP_DATA_TYPE_UNKNOWN)
 	{
-logError("to-remove, 2");
 		goto EXIT;
 	}
 
 	dataType = diaCxGetReusedAvpInfo(avpCode, NULL, NULL);
     if(dataType != DIA_AVP_DATA_TYPE_UNKNOWN)
     {
-logError("to-remove, 3");
 		goto EXIT;
 	}
 
@@ -477,7 +474,6 @@ osStatus_e diaAvpAddList(osList_t* pAvpList, osList_t* pAvpData, uint32_t avpCod
 			status = OS_ERROR_INVALID_VALUE;
             break;
         }
-logError("to-remove, avpCode=%d, i=%d, memory=%p.", avpCode, i, &avpMemory[i-1]);
 	}
 
 EXIT:

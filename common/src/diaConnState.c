@@ -164,18 +164,15 @@ osStatus_e diaConnStateClientCosed_onMsg(diaConnMsgType_e msgType, diaConnBlock_
 		case DIA_CONN_MSG_TYPE_TIMEOUT:
 			if(timerId = pDcb->timerId_tpWaitConn)
 			{
-logError("to-remove, 1");
 				pDcb->timerId_tpWaitConn = 0;
 				pDcb->timerId_tpRetryConn = diaStartTimer(DIA_CONN_TIMER_RETRY_CONN, pDcb);
 			}
 			else if(timerId = pDcb->timerId_tpRetryConn)
 			{
-logError("to-remove, 2");
 				transportStatus_e tpStatus = diaConnMgr_startConn(pDcb);
 				switch(tpStatus)
 				{
 					case TRANSPORT_STATUS_TCP_CONN:
-logError("to-remove, 3");
 						pDcb->timerId_tpRetryConn = 0;
 						pDcb->timerId_tpWaitConn = diaStartTimer(DIA_CONN_TIMER_WAIT_CONN, pDcb);
 						break;
@@ -191,7 +188,6 @@ logError("to-remove, 3");
 			}
             else
             {
-logError("to-remove, 4");
                 pDcb->timerId_tpRetryConn = diaStartTimer(DIA_CONN_TIMER_RETRY_CONN, pDcb);
             }
 			//DIA_CONN_TIMER_RETRY_TRANSPORT shall be longer than normal TCP conenction try time
