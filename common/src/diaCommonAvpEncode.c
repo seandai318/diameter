@@ -57,7 +57,7 @@ osStatus_e diaAvp_encodeSessionId(osMBuf_t* pDiaBuf, void* pData)
         goto EXIT;
     }
 
-	osPL_set(pSessData->pSessId, sessIdBuf, len);
+	osVPL_set(pSessData->pSessId, sessIdBuf, len, true);
 
 	status = diaAvp_encode(pDiaBuf, DIA_CMD_CODE_BASE, DIA_AVP_CODE_SESSION_ID, (diaEncodeAvpData_u) pSessData->pSessId);
 

@@ -38,6 +38,7 @@ osMBuf_t* diaCxCer_encode(diaBaseCerParam_t* pCerParam, diaCmdHdrInfo_t* pCmdHdr
 {
     osStatus_e status = OS_STATUS_OK;
     osMBuf_t* pDiaBuf = NULL;
+    osList_t cerAvpList = {};       //each element contains diaEncodeAvp_t
 
     if(!pCerParam || !pCmdHdrInfo)
     {
@@ -45,8 +46,6 @@ osMBuf_t* diaCxCer_encode(diaBaseCerParam_t* pCerParam, diaCmdHdrInfo_t* pCmdHdr
         status = OS_ERROR_NULL_POINTER;
         goto EXIT;
     }
-
-	osList_t cerAvpList = {};		//each element contains diaEncodeAvp_t
 
 	//orig-host
 	diaEncodeAvp_t avpOrigHost = {DIA_AVP_CODE_ORIG_HOST, (diaEncodeAvpData_u)&pCerParam->realmHost.origHost, NULL};
@@ -192,18 +191,16 @@ EXIT:
 
 //pList contains extra optional AVPs
 //firmware revision is a pointer so that we can base on the pointer value to determine if the avp exists
-osMBuf_t* diaBuildCer(osListPlus_t* pHostIpList, uint32_t vendorId, osPointerLen_t* productName, osList_t* pSupportedVendorId, osList_t* pAuthAppId, osList_t* pAcctAppId, osList_t* pVendorSpecificAppId, uint32_t* firmwareRev, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo)
+osMBuf_t* diaBuildCer(osListPlus_t* pHostIpList, uint32_t vendorId, osVPointerLen_t* productName, osList_t* pSupportedVendorId, osList_t* pAuthAppId, osList_t* pAcctAppId, osList_t* pVendorSpecificAppId, uint32_t* firmwareRev, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo)
 {
+    osMBuf_t* pBuf = NULL;
+    diaBaseCerParam_t cerParam = {};
 
 	if(!pHostIpList || !productName || !pCmdHdrInfo)
 	{
 		logError("null pointer for mandatory parameters, pHostIpList=%p, productName=%p, pCmdHdrInfo=%p.", pHostIpList, productName, pCmdHdrInfo);
 		return NULL;
 	}
-
-	osMBuf_t* pBuf = NULL;
-
-	diaBaseCerParam_t cerParam = {};
 
 	diaConfig_getHostRealm(&cerParam.realmHost);
 
@@ -326,6 +323,7 @@ osMBuf_t* diaCxCea_encode(diaBaseCeaParam_t* pCeaParam, diaCmdHdrInfo_t* pCmdHdr
 {
     osStatus_e status = OS_STATUS_OK;
     osMBuf_t* pDiaBuf = NULL;
+    osList_t ceaAvpList = {};       //each element contains diaEncodeAvp_t
 
     if(!pCeaParam)
     {
@@ -333,8 +331,6 @@ osMBuf_t* diaCxCea_encode(diaBaseCeaParam_t* pCeaParam, diaCmdHdrInfo_t* pCmdHdr
         status = OS_ERROR_NULL_POINTER;
         goto EXIT;
     }
-
-    osList_t ceaAvpList = {};       //each element contains diaEncodeAvp_t
 
 	//result-code
 	diaEncodeAvp_t avpResultCode = {DIA_AVP_CODE_RESULT_CODE, (diaEncodeAvpData_u)pCeaParam->resultCode.resultCode, NULL};
@@ -478,22 +474,23 @@ logError("to-remove, Vendor-Specific-Application-Id exists, pOptAvp=%p.", pOptAv
     pDiaBuf = diaMsg_encode(DIA_CMD_CODE_CER, 0x00, DIA_APP_ID_BASE, &ceaAvpList, pCmdHdrInfo);
 
 EXIT:
+	osList_clear(&ceaAvpList);
     return pDiaBuf;
 }
 
 
 
 //pList contains extra optional AVPs
-osMBuf_t* diaBuildCea(diaResultCode_e resultCode, osListPlus_t* pHostIpList, uint32_t vendorId, osPointerLen_t* productName, osList_t* pSupportedVendorId, osList_t* pAuthAppId, osList_t* pAcctAppId, osList_t* pVendorSpecificAppId, uint32_t* firmwareRev, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo)
+osMBuf_t* diaBuildCea(diaResultCode_e resultCode, osListPlus_t* pHostIpList, uint32_t vendorId, osVPointerLen_t* productName, osList_t* pSupportedVendorId, osList_t* pAuthAppId, osList_t* pAcctAppId, osList_t* pVendorSpecificAppId, uint32_t* firmwareRev, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo)
 {
+	osMBuf_t* pBuf;
+    diaBaseCeaParam_t ceaParam = {};
 
     if(!pHostIpList || !productName || !pCmdHdrInfo)
     {
         logError("null pointer for mandatory parameters, pHostIpList=%p, productName=%p, pCmdHdrInfo=%p.", pHostIpList, productName, pCmdHdrInfo);
         return NULL;
     }
-
-    diaBaseCeaParam_t ceaParam = {};
 
 	ceaParam.resultCode.isResultCode = true;
 	ceaParam.resultCode.resultCode = resultCode;
@@ -549,7 +546,11 @@ logError("to-remove, avpVSAppId=%p.", avpVSAppId);
 
     ceaParam.pExtraOptAvpList = pExtraOptList;
 
-    return diaCxCea_encode(&ceaParam, pCmdHdrInfo);
+    pBuf = diaCxCea_encode(&ceaParam, pCmdHdrInfo);
+
+EXIT:
+	osList_clear(&ceaParam.optAvpList);
+	return pBuf;
 }
 
 

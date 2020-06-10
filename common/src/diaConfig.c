@@ -12,7 +12,7 @@
 #include "diaAvp.h"
 
 
-static osPointerLen_t gPlDiaHostIp[DIA_MAX_HOST_IP_NUM];
+static osVPointerLen_t gPlDiaHostIp[DIA_MAX_HOST_IP_NUM];
 static uint32_t diaHostNum;
 
 
@@ -29,8 +29,11 @@ void diaConfig_init()
     diaWriteU32(&pHostIp[2], saddr.sin_addr.s_addr);	
 
 	//for now, only support 1 host IP.
-	gPlDiaHostIp[0].p = pHostIp;
-	gPlDiaHostIp[0].l = 6;
+	gPlDiaHostIp[0].pl.p = pHostIp;
+	gPlDiaHostIp[0].pl.l = 6;
+	gPlDiaHostIp[0].isPDynamic = false;		//though pHostIp is dynamically allocated, this is intended to be kept forever
+	gPlDiaHostIp[0].isVPLDynamic = false;
+
 	diaHostNum = 1;
 }
 		
@@ -43,10 +46,14 @@ void diaConfig_getHostRealm(diaRealmHost_t* pRealmHost)
 		return;
 	}
 
-	osPL_setStr(&pRealmHost->origRealm, DIA_ORIG_REALM, strlen(DIA_ORIG_REALM));  
-	osPL_setStr(&pRealmHost->origHost, DIA_ORIG_HOST, strlen(DIA_ORIG_HOST));
-	osPL_setStr(&pRealmHost->destRealm, DIA_DEST_REALM, strlen(DIA_DEST_REALM));
-	osPL_init(&pRealmHost->destHost);
+    osVPL_init(&pRealmHost->origHost, false);
+    osVPL_init(&pRealmHost->origRealm, false);
+    osVPL_init(&pRealmHost->destHost, false);
+    osVPL_init(&pRealmHost->destRealm, false);
+
+	osVPL_setStr(&pRealmHost->origRealm, DIA_ORIG_REALM, strlen(DIA_ORIG_REALM), false);  
+	osVPL_setStr(&pRealmHost->origHost, DIA_ORIG_HOST, strlen(DIA_ORIG_HOST), false);
+	osVPL_setStr(&pRealmHost->destRealm, DIA_DEST_REALM, strlen(DIA_DEST_REALM), false);
 } 
 
 
@@ -74,8 +81,9 @@ void diaConfig_getPeer(diaIntfType_e intfType, osIpPort_t* pPeer)
 		return;
 	}
 
-	pPeer->ip.p = DIA_CONFIG_PEER_IP;
-	pPeer->ip.l = strlen(DIA_CONFIG_PEER_IP);
+	pPeer->ip.pl.p = DIA_CONFIG_PEER_IP;
+	pPeer->ip.pl.l = strlen(DIA_CONFIG_PEER_IP);
+	pPeer->ip.isPDynamic = false;
 	pPeer->port = DIA_CONFIG_PEER_PORT;
 
 	return;
@@ -116,6 +124,7 @@ osVPointerLen_t* diaConfig_getProductName(diaIntfType_e intfType, osVPointerLen_
 			logError("null pointer, pProductName.");
 			return NULL;
 		}
+		pProductName->isVPLDynamic = true;
 	}
 
 	pProductName->pl.p = DIA_PRODUCT_NAME;

@@ -32,7 +32,7 @@ typedef struct diaBaseCerParam {
     diaRealmHost_t realmHost;
 	osListPlus_t* hostIpList;
 	uint32_t vendorId;
-	osPointerLen_t* productName;
+	osVPointerLen_t* productName;
 	osList_t optAvpList;	//contains optional orig-state-id, supported-vendor-id, auth-app-id, acct-app-id, vendor-specific-app-id, and firmware-revision.
     osList_t* pExtraOptAvpList;		//extra optional AVP that user wants to include
 } diaBaseCerParam_t;
@@ -65,15 +65,15 @@ typedef struct diaBaseCeaParam {
 	diaResultCode_t resultCode;
     osListPlus_t* hostIpList;
     uint32_t vendorId;
-    osPointerLen_t* productName;
+    osVPointerLen_t* productName;
     osList_t optAvpList;    //contains optional orig-state-id, supported-vendor-id, auth-app-id, acct-app-id, vendor-specific-app-id, and firmware-revision.
 	osList_t* pExtraOptAvpList; 	//extra optional AVP that user wants to include
 } diaBaseCeaParam_t;
 
 
-osMBuf_t* diaBuildCer(osListPlus_t* pHostIpList, uint32_t vendorId, osPointerLen_t* productName, osList_t* pSupportedVendorId, osList_t* pAuthAppId, osList_t* pAcctAppId, osList_t* pVendorSpecificAppId, uint32_t* firmwareRev, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo);
+osMBuf_t* diaBuildCer(osListPlus_t* pHostIpList, uint32_t vendorId, osVPointerLen_t* productName, osList_t* pSupportedVendorId, osList_t* pAuthAppId, osList_t* pAcctAppId, osList_t* pVendorSpecificAppId, uint32_t* firmwareRev, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo);
 
-osMBuf_t* diaBuildCea(diaResultCode_e resultCode, osListPlus_t* pHostIpList, uint32_t vendorId, osPointerLen_t* productName, osList_t* pSupportedVendorId, osList_t* pAuthAppId, osList_t* pAcctAppId, osList_t* pVendorSpecificAppId, uint32_t* firmwareRev, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo);;
+osMBuf_t* diaBuildCea(diaResultCode_e resultCode, osListPlus_t* pHostIpList, uint32_t vendorId, osVPointerLen_t* productName, osList_t* pSupportedVendorId, osList_t* pAuthAppId, osList_t* pAcctAppId, osList_t* pVendorSpecificAppId, uint32_t* firmwareRev, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo);;
 
 osStatus_e diaConnProcessCea(diaMsgDecoded_t* pDiaDecoded, struct diaConnBlock* pDcb);
 

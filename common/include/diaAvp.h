@@ -48,7 +48,7 @@ typedef struct diaAvpData {
         int64_t data64;
         uint32_t dataU32;
         uint64_t dataU64;
-        osPointerLen_t dataStr;
+        osVPointerLen_t dataStr;
         diaAvpGroupedData_t dataGrouped;
     };
 } diaAvpData_t;
@@ -99,7 +99,7 @@ typedef struct diaAvp_vendorSpecificAppIdParam {
 
 typedef struct diaAvp_sessionIdParam {
 	char* pHostName;
-	osPointerLen_t* pSessId;
+	osVPointerLen_t* pSessId;
 } diaAvp_sessionIdParam_t;
 
 
@@ -107,10 +107,11 @@ osStatus_e diaAvp_decode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t* avpCo
 osStatus_e diaAvp_encode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t avpCode, diaEncodeAvpData_u avpData);
 diaEncodeAvp_t* diaAvpGrp_create(uint32_t avpCode);
 diaEncodeAvp_t* diaAvpGrp_addAvp(diaEncodeAvp_t* pGrpAvp, uint32_t avpCode, diaEncodeAvpData_u avpData, diaAvp_encodeGroupCallback_h avpEncodeFunc);
-void diaAvpGrp_cleanup(diaEncodeAvp_t* pGrpAvp);
+//void diaAvpGrp_cleanup(diaEncodeAvp_t* pGrpAvp);
 
 //if encodeFunc = NULL, the standard avp_encode will be called, otherwise, encodeFunc will be called 
 diaDataType_e diaGetAvpInfo(diaCmdCode_e diaCmd, uint32_t avpCode, uint8_t* avpFlag, diaAvpVendor_e* vendorId);
+diaDataType_e diaGetAvpDataType(uint32_t avpCode);
 //void diaEncodeAvpSetValue(diaEncodeAvp_t* pAvpInfo, diaAvpCode_e avpCode, uint8_t avpFlag, diaAvpVendor_e hdrVendorId, diaEncodeAvpData_u avpData, diaAvp_encodeGroupCallback_h encodeFunc);
 bool diaListFindAvp(osListElement_t* pLE, void* arg);
 diaEncodeAvp_t* diaOptListFindAndRemoveAvp(osList_t* pOptList, uint32_t avpCode);

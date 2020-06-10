@@ -21,30 +21,30 @@ typedef enum {
 
 
 typedef union {
-    osPointerLen_t sipAuthContext_noAka;
-    osPointerLen_t sipAuthorization_onlyAka;
+    osVPointerLen_t sipAuthContext_noAka;
+    osVPointerLen_t sipAuthorization_onlyAka;
 } diaCxMar_ReqAuthData_u;
 
 typedef struct diaCxMar_authAka {
 	uint32_t itemOrder;		//sip-item-num, the order of each item
-    osPointerLen_t sipAuthenticate;
-    osPointerLen_t sipAuthorization;
-    osPointerLen_t ck;
-    osPointerLen_t ik;
+    osVPointerLen_t sipAuthenticate;
+    osVPointerLen_t sipAuthorization;
+    osVPointerLen_t ck;
+    osVPointerLen_t ik;
 } diaCxMar_authAka_t;
 
 
 typedef struct diaCxMar_authDigest {
-	osPointerLen_t digestRealm;
-	osPointerLen_t digestQop;
-	osPointerLen_t digestHa1;
+	osVPointerLen_t digestRealm;
+	osVPointerLen_t digestQop;
+	osVPointerLen_t digestHa1;
 } diaCxMar_authDigest_t;
 
 typedef struct diaCxMar_authGiba {
 	bool isIPv4;
 	union {
-		osPointerLen_t framedIP;
-		osPointerLen_t framedIPv6Prefix;
+		osVPointerLen_t framedIP;
+		osVPointerLen_t framedIPv6Prefix;
 	};
 } diaCxMar_authGiba_t;
 
@@ -70,18 +70,18 @@ typedef struct diaCxMarSipAuthDataItem {
 	
 typedef struct diaCxMarParam {
     diaRealmHost_t realmHost;
-    osPointerLen_t userName;
-    osPointerLen_t pubId;
+    osVPointerLen_t userName;
+    osVPointerLen_t pubId;
 	diaCxMarSipAuthDataItem_t* authData;
 	uint32_t authItem;
-	osPointerLen_t serverName;
+	osVPointerLen_t serverName;
     osList_t optAvpList;            //contains list of diaEncodeAvp_t for destHost, supported-feature, etc.
     osList_t* pExtraOptAvpList;     //extra optional AVPs, passed from user directly
 } diaCxMarParam_t;
 	
 
 //pList contains extra optional AVPs
-osMBuf_t* diaBuildMar(osPointerLen_t* userName, osPointerLen_t* pubId, diaCxMarSipAuthDataItem_t* pAuthData, osPointerLen_t* serverName, osPointerLen_t* pDestHost, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
+osMBuf_t* diaBuildMar(osVPointerLen_t* userName, osVPointerLen_t* pubId, diaCxMarSipAuthDataItem_t* pAuthData, osVPointerLen_t* serverName, osVPointerLen_t* pDestHost, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
 
 osStatus_e diaMar_encode(osMBuf_t* pDiaBuf, diaCxMarParam_t* pMarParam, diaHdrSessInfo_t* pHdrSessInfo);
 

@@ -22,6 +22,7 @@ typedef enum {
 	DIA_AVP_ENCODE_DATA_TYPE_STR,
 	DIA_AVP_ENCODE_DATA_TYPE_GROUP,
 	DIA_AVP_ENCODE_DATA_TYPE_ENCODE_FUNC_ARG,
+	DIA_AVP_ENCODE_DATA_TYPE_UNKNOWN,
 } diaAvpEncodeDataType_e;
 
 
@@ -30,7 +31,7 @@ typedef union {
     int64_t data64;
     uint32_t dataU32;
     uint64_t dataU64;
-    osPointerLen_t* pDataStr;
+    osVPointerLen_t* pDataStr;
     diaEncodeAvpGroupedData_t* pDataGrouped;	//used for grouped AVP	
 	void* pAvpEncodeFuncArg;	//used when user specifies a encoding function to encode a AVP
 } diaEncodeAvpData_u;
@@ -50,6 +51,7 @@ osStatus_e diaAvp_encodeSessionId(osMBuf_t* pDiaBuf, void* pData);
 osStatus_e diaAvp_encodeSupportedFeature(osMBuf_t* pDiaBuf, void* pData);
 osStatus_e diaAvp_encodeVendorSpecificAppId(osMBuf_t* pDiaBuf, void* pData);
 osStatus_e diaAvpAddList(osList_t* pAvpList, osList_t* pAvpData, uint32_t avpCode, diaAvpEncodeDataType_e dataType, diaEncodeAvp_t* avpMemory);
+diaAvpEncodeDataType_e diaGetAvpEncodeDataType(uint32_t avpCode);
 
 
 

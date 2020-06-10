@@ -27,6 +27,9 @@ diaDataType_e diaGetAvpInfo(diaCmdCode_e diaCmd, uint32_t avpCode, uint8_t* avpF
 
 	switch(diaCmd)
 	{
+		case DIA_CMD_CODE_BASE:
+			dataType = diaBaseGetAvpInfo(avpCode, avpFlag);
+			break;
 		case DIA_CMD_CODE_LIR:
 		case DIA_CMD_CODE_MAR:
 		case DIA_CMD_CODE_SAR:
@@ -249,6 +252,80 @@ diaDataType_e diaBaseGetAvpInfo(diaAvpBaseCode_e avpCode, uint8_t* avpFlag)
             break;
 		default:
 			logError("diameter AVP code(%d) is not supported.", avpCode);
+			break;
+	}
+
+	return dataType;
+}
+
+
+//get avp data type w/o knowing diaCmd, try all the possibility, dtarting from base protocol.
+diaDataType_e diaGetAvpDataType(uint32_t avpCode)
+{
+    diaDataType_e dataType = DIA_AVP_DATA_TYPE_UNKNOWN;
+
+	dataType = diaBaseGetAvpInfo(avpCode, NULL);
+	if(dataType != DIA_AVP_DATA_TYPE_UNKNOWN)
+	{
+logError("to-remove, 1");
+		goto EXIT;
+	}
+		
+	dataType = diaCxGetAvpInfo(avpCode, NULL, NULL);
+	if(dataType != DIA_AVP_DATA_TYPE_UNKNOWN)
+	{
+logError("to-remove, 2");
+		goto EXIT;
+	}
+
+	dataType = diaCxGetReusedAvpInfo(avpCode, NULL, NULL);
+    if(dataType != DIA_AVP_DATA_TYPE_UNKNOWN)
+    {
+logError("to-remove, 3");
+		goto EXIT;
+	}
+
+	//dataType = diaShGetAvpInfo(avpCode, NULL, NULL);
+
+EXIT:
+	debug("avpCode=%d, dataType=%d", avpCode, dataType);
+	return dataType;
+}
+
+
+diaAvpEncodeDataType_e diaGetAvpEncodeDataType(uint32_t avpCode)
+{
+	diaAvpEncodeDataType_e dataType = DIA_AVP_ENCODE_DATA_TYPE_UNKNOWN;
+    
+	switch(diaGetAvpDataType(avpCode))
+    {
+		case DIA_AVP_ENCODE_DATA_TYPE_INT32:
+			dataType = DIA_AVP_DATA_TYPE_INT32;
+			break;
+		case DIA_AVP_ENCODE_DATA_TYPE_INT64:
+			dataType = DIA_AVP_DATA_TYPE_INT64;
+			break;
+		case DIA_AVP_ENCODE_DATA_TYPE_U32:
+			dataType = DIA_AVP_DATA_TYPE_UINT32;
+			break;
+		case DIA_AVP_ENCODE_DATA_TYPE_U64:
+			dataType = DIA_AVP_DATA_TYPE_UINT64;
+			break;
+		case DIA_AVP_DATA_TYPE_FLOAT32:
+		case DIA_AVP_DATA_TYPE_FLOAT64:
+			//unsupported for now
+			break;
+        case DIA_AVP_DATA_TYPE_GROUPED:
+			dataType = DIA_AVP_ENCODE_DATA_TYPE_GROUP;
+            break;
+        case DIA_AVP_DATA_TYPE_OCTET_STRING:
+        case DIA_AVP_DATA_TYPE_UTF8_STRING:
+        case DIA_AVP_DATA_TYPE_IP_FILTER:
+        case DIA_AVP_DATA_TYPE_TIME:
+        case DIA_AVP_DATA_TYPE_DIAM_IDEN:
+			dataType = DIA_AVP_ENCODE_DATA_TYPE_STR;
+			break;
+		default:
 			break;
 	}
 

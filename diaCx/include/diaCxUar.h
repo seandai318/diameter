@@ -23,16 +23,16 @@ typedef struct diaCxUarServerCap {
 	uint8_t mscNum;
 	uint32_t osc[DIA_CX_MAX_SERVER_CAPABILITY_ITEM];		//optional server capabilities
 	uint8_t oscNum;
-	osPointerLen_t serverName[DIA_CX_MAX_SERVER_CAPABILITY_ITEM];	//server name
+	osVPointerLen_t serverName[DIA_CX_MAX_SERVER_CAPABILITY_ITEM];	//server name
 	uint8_t serverNameNum;
 } diaCxUarServerCap_t;
 
 
 typedef struct diaCxUarParam {
 	diaRealmHost_t realmHost;
-    osPointerLen_t userName;
-    osPointerLen_t pubId;
-    osPointerLen_t visitedNetwork;      //visited network id
+    osVPointerLen_t userName;
+    osVPointerLen_t pubId;
+    osVPointerLen_t visitedNetwork;      //visited network id
 	osList_t optAvpList;			//contains list of diaEncodeAvp_t for destHost, supported-feature, userAuthType, etc.
 	osList_t* pExtraOptAvpList;		//extra optional AVPs, passed from user directly
 } diaCxUarParam_t;
@@ -47,11 +47,11 @@ typedef struct diaCxUaaParam {
 
 
 
-osMBuf_t* diaBuildUar(osPointerLen_t* userName, osPointerLen_t* pubId, osPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
+osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
 osMBuf_t* diaCxUar_encode(diaCxUarParam_t* pUarParam, diaHdrSessInfo_t* pHdrSessInfo);
 
 //pList contains extra optional AVPs
-osMBuf_t* diaBuildUaa(diaHdrSessInfo_t* pHdrSessInfo, diaResultCode_t* pResultCode, diaAvp_supportedFeature_t* pSF, osPointerLen_t* serverName,diaCxUarServerCap_t* pCap, osList_t* pExtraOptList);
+osMBuf_t* diaBuildUaa(diaHdrSessInfo_t* pHdrSessInfo, diaResultCode_t* pResultCode, diaAvp_supportedFeature_t* pSF, osVPointerLen_t* serverName,diaCxUarServerCap_t* pCap, osList_t* pExtraOptList);
 osMBuf_t* diaCxUaa_encode(diaCxUaaParam_t* pUaaParam, diaHdrSessInfo_t* pHdrSessInfo);
 
 

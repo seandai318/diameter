@@ -50,7 +50,7 @@ osMBuf_t* diaCxUar_encode(diaCxUarParam_t* pUarParam, diaHdrSessInfo_t* pHdrSess
 	//session-id
 	diaAvp_sessionIdParam_t sessIdData;
 	sessIdData.pSessId = &pHdrSessInfo->sessionId;	
-    sessIdData.pHostName = (void*)pUarParam->realmHost.origHost.p;
+    sessIdData.pHostName = (void*)pUarParam->realmHost.origHost.pl.p;
     diaEncodeAvp_t avpSessId = {DIA_AVP_CODE_SESSION_ID, (diaEncodeAvpData_u)((void*) &sessIdData), diaAvp_encodeSessionId};
     osList_append(&uarAvpList, &avpSessId);
 
@@ -195,9 +195,9 @@ EXIT:
 }
 
 
-osPointerLen_t* diaCxUar_getServerName(diaMsgDecoded_t* pMsgDecoded)
+osVPointerLen_t* diaCxUar_getServerName(diaMsgDecoded_t* pMsgDecoded)
 {
-	osPointerLen_t* pServerName = NULL;
+	osVPointerLen_t* pServerName = NULL;
 
     if(!pMsgDecoded)
     {
@@ -271,7 +271,7 @@ EXIT:
 
 
 //pList contains extra optional AVPs
-osMBuf_t* diaBuildUar(osPointerLen_t* userName, osPointerLen_t* pubId, osPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
+osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
 {
 
 	if(!userName || !pubId || !visitedNWId || !pHdrSessInfo)
@@ -284,7 +284,7 @@ osMBuf_t* diaBuildUar(osPointerLen_t* userName, osPointerLen_t* pubId, osPointer
 
 	diaConfig_getHostRealm(&uarParam.realmHost);
 	diaEncodeAvp_t destHost = {DIA_AVP_CODE_DEST_HOST, (diaEncodeAvpData_u)&uarParam.realmHost.destHost, NULL};
-	if(uarParam.realmHost.destHost.p)
+	if(uarParam.realmHost.destHost.pl.p)
 	{
 		osList_append(&uarParam.optAvpList, &destHost);
 	}
@@ -380,7 +380,7 @@ osMBuf_t* diaCxUaa_encode(diaCxUaaParam_t* pUaaParam, diaHdrSessInfo_t* pHdrSess
     osList_t uaaAvpList = {};       //each element contains diaEncodeAvp_t
     //session-id
     diaAvp_sessionIdParam_t sessIdData;
-    sessIdData.pHostName = (void*)pUaaParam->realmHost.origHost.p;
+    sessIdData.pHostName = (void*)pUaaParam->realmHost.origHost.pl.p;
     diaEncodeAvp_t avpSessId = {DIA_AVP_CODE_SESSION_ID, (diaEncodeAvpData_u)&pHdrSessInfo->sessionId, NULL};
     osList_append(&uaaAvpList, &avpSessId);
 
@@ -507,7 +507,7 @@ EXIT:
 
 
 //pList contains extra optional AVPs
-osMBuf_t* diaBuildUaa(diaHdrSessInfo_t* pHdrSessInfo, diaResultCode_t* pResultCode, diaAvp_supportedFeature_t* pSF, osPointerLen_t* serverName,diaCxUarServerCap_t* pCap, osList_t* pExtraOptList)
+osMBuf_t* diaBuildUaa(diaHdrSessInfo_t* pHdrSessInfo, diaResultCode_t* pResultCode, diaAvp_supportedFeature_t* pSF, osVPointerLen_t* serverName,diaCxUarServerCap_t* pCap, osList_t* pExtraOptList)
 {
 	osMBuf_t* pDiaBuf = NULL;
 

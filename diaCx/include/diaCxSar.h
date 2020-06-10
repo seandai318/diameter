@@ -48,17 +48,17 @@ typedef enum {
 
 typedef struct diaCxSarParam {
 	uint32_t optionAVPList;
-    osPointerLen_t origHost;
-    osPointerLen_t origRealm;
-    osPointerLen_t destHost;
-    osPointerLen_t destRealm;
-    osPointerLen_t userName;
-    osPointerLen_t pubId;
-    osPointerLen_t serverName;
+    osVPointerLen_t origHost;
+    osVPointerLen_t origRealm;
+    osVPointerLen_t destHost;
+    osVPointerLen_t destRealm;
+    osVPointerLen_t userName;
+    osVPointerLen_t pubId;
+    osVPointerLen_t serverName;
 	dia3gppServerAssignmentType_e serverAssignmentType;
     diaCxUserDataAvailable_e userDataAvailable;
-	osPointerLen_t restorationUserName;
-	osPointerLen_t restorationInfo;
+	osVPointerLen_t restorationUserName;
+	osVPointerLen_t restorationInfo;
     osListPlus_t featureList;       //each item ia of type diaFeatureList_t
 } diaCxSarParam_t;
 

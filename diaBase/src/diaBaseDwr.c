@@ -4,6 +4,7 @@
 
 #include "osList.h"
 #include "osMemory.h"
+#include "osPL.h"
 
 #include "diaMsg.h"
 #include "diaAvp.h"
@@ -27,6 +28,7 @@ osMBuf_t* diaCxDwr_encode(diaBaseDwrParam_t* pDwrParam, diaCmdHdrInfo_t* pCmdHdr
 {
     osStatus_e status = OS_STATUS_OK;
     osMBuf_t* pDiaBuf = NULL;
+    osList_t dwrAvpList = {};       //each element contains diaEncodeAvp_t
 
     if(!pDwrParam || !pCmdHdrInfo)
     {
@@ -34,8 +36,6 @@ osMBuf_t* diaCxDwr_encode(diaBaseDwrParam_t* pDwrParam, diaCmdHdrInfo_t* pCmdHdr
         status = OS_ERROR_NULL_POINTER;
         goto EXIT;
     }
-
-	osList_t dwrAvpList = {};		//each element contains diaEncodeAvp_t
 
 	//orig-host
 	diaEncodeAvp_t avpOrigHost = {DIA_AVP_CODE_ORIG_HOST, (diaEncodeAvpData_u)&pDwrParam->realmHost.origHost, NULL};
@@ -92,15 +92,14 @@ EXIT:
 //pList contains extra optional AVPs that are not explicitly specified in the rfc
 osMBuf_t* diaBuildDwr(osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo)
 {
+    osMBuf_t* pBuf = NULL;
+    diaBaseDwrParam_t dwrParam = {};
+
 	if(!pCmdHdrInfo)
 	{
 		logError("null pointer for mandatory parameters, pCmdHdrInfo=%p.", pCmdHdrInfo);
 		return NULL;
 	}
-
-	osMBuf_t* pBuf = NULL;
-
-	diaBaseDwrParam_t dwrParam = {};
 
 	diaConfig_getHostRealm(&dwrParam.realmHost);
 
@@ -131,6 +130,7 @@ osMBuf_t* diaCxDwa_encode(diaBaseDwaParam_t* pDwaParam, diaCmdHdrInfo_t* pCmdHdr
 {
     osStatus_e status = OS_STATUS_OK;
     osMBuf_t* pDiaBuf = NULL;
+    osList_t dwaAvpList = {};       //each element contains diaEncodeAvp_t
 
     if(!pDwaParam)
     {
@@ -139,19 +139,17 @@ osMBuf_t* diaCxDwa_encode(diaBaseDwaParam_t* pDwaParam, diaCmdHdrInfo_t* pCmdHdr
         goto EXIT;
     }
 
-    osList_t ceaAvpList = {};       //each element contains diaEncodeAvp_t
-
 	//result-code
 	diaEncodeAvp_t avpResultCode = {DIA_AVP_CODE_RESULT_CODE, (diaEncodeAvpData_u)pDwaParam->resultCode.resultCode, NULL};
-	osList_append(&ceaAvpList, &avpResultCode);
+	osList_append(&dwaAvpList, &avpResultCode);
 
     //orig-host
     diaEncodeAvp_t avpOrigHost = {DIA_AVP_CODE_ORIG_HOST, (diaEncodeAvpData_u)&pDwaParam->realmHost.origHost, NULL};
-    osList_append(&ceaAvpList, &avpOrigHost);
+    osList_append(&dwaAvpList, &avpOrigHost);
 
     //orig-realm
     diaEncodeAvp_t avpOrigRealm = {DIA_AVP_CODE_ORIG_REALM, (diaEncodeAvpData_u)&pDwaParam->realmHost.origRealm, NULL};
-    osList_append(&ceaAvpList, &avpOrigRealm);
+    osList_append(&dwaAvpList, &avpOrigRealm);
 
     diaEncodeAvp_t* pOptAvp = NULL;
     if(osList_getCount(&pDwaParam->optAvpList) > 0)
@@ -163,7 +161,7 @@ osMBuf_t* diaCxDwa_encode(diaBaseDwaParam_t* pDwaParam, diaCmdHdrInfo_t* pCmdHdr
             {
                 break;
             }
-            osList_append(&ceaAvpList, pOptAvp);
+            osList_append(&dwaAvpList, pOptAvp);
         }
     }
 
@@ -176,13 +174,15 @@ osMBuf_t* diaCxDwa_encode(diaBaseDwaParam_t* pDwaParam, diaCmdHdrInfo_t* pCmdHdr
             {
                 break;
             }
-            osList_append(&ceaAvpList, pOptAvp);
+            osList_append(&dwaAvpList, pOptAvp);
         }
     }
 
-    pDiaBuf = diaMsg_encode(DIA_CMD_CODE_DWR, 0x00, DIA_APP_ID_BASE, &ceaAvpList, pCmdHdrInfo);
+    pDiaBuf = diaMsg_encode(DIA_CMD_CODE_DWR, 0x00, DIA_APP_ID_BASE, &dwaAvpList, pCmdHdrInfo);
 
 EXIT:
+    osList_clear(&dwaAvpList);
+
     return pDiaBuf;
 }
 
@@ -200,8 +200,9 @@ EXIT:
  *                 * [ AVP ]
  */
 //pList contains extra optional AVPs that is not listed explicitly in the rfc
-osMBuf_t* diaBuildDwa(diaResultCode_e resultCode, osPointerLen_t* errorMsg, diaEncodeAvp_t* failedEvp, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo)
+osMBuf_t* diaBuildDwa(diaResultCode_e resultCode, osVPointerLen_t* errorMsg, diaEncodeAvp_t* failedEvp, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo)
 {
+    osMBuf_t* pBuf = NULL;
 
     if(!pCmdHdrInfo)
     {
@@ -209,27 +210,31 @@ osMBuf_t* diaBuildDwa(diaResultCode_e resultCode, osPointerLen_t* errorMsg, diaE
         return NULL;
     }
 
-    diaBaseDwaParam_t ceaParam = {};
+    diaBaseDwaParam_t dwaParam = {};
 
-	ceaParam.resultCode.isResultCode = true;
-	ceaParam.resultCode.resultCode = resultCode;
+	dwaParam.resultCode.isResultCode = true;
+	dwaParam.resultCode.resultCode = resultCode;
 
-    diaConfig_getHostRealm(&ceaParam.realmHost);
+    diaConfig_getHostRealm(&dwaParam.realmHost);
 
     diaEncodeAvp_t avpErrorMsg = {DIA_AVP_CODE_ERROR_MESSAGE, (diaEncodeAvpData_u)errorMsg, NULL};
     if(errorMsg)
     {
-		osList_append(&ceaParam.optAvpList, &avpErrorMsg);
+		osList_append(&dwaParam.optAvpList, &avpErrorMsg);
 	}
 
 	diaEncodeAvpGroupedData_t avpFailedAvpData = {failedEvp, 1};
     diaEncodeAvp_t avpFailedAvp = {DIA_AVP_CODE_FAILED_AVP, (diaEncodeAvpData_u)&avpFailedAvpData, NULL};
 	if(failedEvp)
 	{
-		osList_append(&ceaParam.optAvpList, &avpFailedAvp);
+		osList_append(&dwaParam.optAvpList, &avpFailedAvp);
     }
 
-    ceaParam.pExtraOptAvpList = pExtraOptList;
+    dwaParam.pExtraOptAvpList = pExtraOptList;
 
-    return diaCxDwa_encode(&ceaParam, pCmdHdrInfo);
+    pBuf = diaCxDwa_encode(&dwaParam, pCmdHdrInfo);
+
+EXIT:
+	osList_clear(&dwaParam.optAvpList);
+	return pBuf;
 }

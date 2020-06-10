@@ -52,7 +52,7 @@ osMBuf_t* diaCxMar_encode(diaCxMarParam_t* pMarParam, diaHdrSessInfo_t* pHdrSess
 	//session-id
 	diaAvp_sessionIdParam_t sessIdData;
     sessIdData.pSessId = &pHdrSessInfo->sessionId;
-    sessIdData.pHostName = (void*)pMarParam->realmHost.origHost.p;
+    sessIdData.pHostName = (void*)pMarParam->realmHost.origHost.pl.p;
     diaEncodeAvp_t avpSessId = {DIA_AVP_CODE_SESSION_ID, (diaEncodeAvpData_u)((void*) &sessIdData), diaAvp_encodeSessionId};
     osList_append(&marAvpList, &avpSessId);
 
@@ -181,7 +181,7 @@ EXIT:
 
 
 //pList contains extra optional AVPs
-osMBuf_t* diaBuildMar(osPointerLen_t* userName, osPointerLen_t* pubId, diaCxMarSipAuthDataItem_t* pAuthData, osPointerLen_t* serverName, osPointerLen_t* pDestHost, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
+osMBuf_t* diaBuildMar(osVPointerLen_t* userName, osVPointerLen_t* pubId, diaCxMarSipAuthDataItem_t* pAuthData, osVPointerLen_t* serverName, osVPointerLen_t* pDestHost, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
 {
 
 	if(!userName || !pubId || !serverName || !pAuthData)
@@ -268,8 +268,10 @@ static osStatus_e diaCxMar_encodeAuthData(osMBuf_t* pDiaBuf, void* pData)
 	diaCxMarSipAuthDataItem_t* pAuthData = pData;
 
     diaEncodeAvpGroupedData_t gAvpData;
-	//for aka, there may have 5 sub avps, to allocate 6 avp space first just in case.
-    osPointerLen_t schemeAvpData;
+    osVPointerLen_t schemeAvpData;
+	osVPL_init(&schemeAvpData, false);
+
+    //for aka, there may have 5 sub avps, to allocate 6 avp space first just in case.
     diaEncodeAvp_t avp[6];
     gAvpData.pDiaAvp = avp;
 	diaAvpEncode_setValue(&avp[0], DIA_AVP_CODE_CX_SIP_AUTH_SCHEME, (diaEncodeAvpData_u)&schemeAvpData, NULL);
@@ -280,22 +282,22 @@ static osStatus_e diaCxMar_encodeAuthData(osMBuf_t* pDiaBuf, void* pData)
 		switch(pAuthData->sipAuthScheme)
 		{
 			case DIA_CX_AUTH_SCHEME_UNKNOWN:		//"Unknown"
-                osPL_setStr(&schemeAvpData, "Unknown", 7);
+                osVPL_setStr(&schemeAvpData, "Unknown", 7, false);
                 break;
     		case DIA_CX_AUTH_SCHEME_DIGEST_AKA:		//"Digest-AKAv1-MD5"
-                osPL_setStr(&schemeAvpData, "Digest-AKAv1-MD5", 16);
+                osVPL_setStr(&schemeAvpData, "Digest-AKAv1-MD5", 16, false);
     			//aka auth and contains auth-info
-				if(pAuthData->reqData.sipAuthorization_onlyAka.l)
+				if(pAuthData->reqData.sipAuthorization_onlyAka.pl.l)
 				{
 					gAvpData.avpNum = 2;
     	            diaAvpEncode_setValue(&avp[1], DIA_AVP_CODE_CX_SIP_AUTHORIZATION, (diaEncodeAvpData_u)&pAuthData->reqData.sipAuthorization_onlyAka, NULL);
 				}
                 break;
     		case DIA_CX_AUTH_SCHEME_SIP_DIGEST:     //"SIP Digest"
-				osPL_setStr(&schemeAvpData, "SIP Digest", 10);	
+				osVPL_setStr(&schemeAvpData, "SIP Digest", 10, false);	
                 break;
     		case DIA_CX_AUTH_SCHEME_EARLY_IMS:      //"Early IMS Security"
-				osPL_setStr(&schemeAvpData, "Early IMS Security", 18);
+				osVPL_setStr(&schemeAvpData, "Early IMS Security", 18, false);
 				break; 
             case DIA_CX_AUTH_SCHEME_NASS_BUNDLED:   //"NASS-Bundled"
 			default:
@@ -309,7 +311,7 @@ static osStatus_e diaCxMar_encodeAuthData(osMBuf_t* pDiaBuf, void* pData)
         switch(pAuthData->sipAuthScheme)
         {
             case DIA_CX_AUTH_SCHEME_DIGEST_AKA:     //"Digest-AKAv1-MD5"
-                osPL_setStr(&schemeAvpData, "Digest-AKAv1-MD5", 16);
+                osVPL_setStr(&schemeAvpData, "Digest-AKAv1-MD5", 16, false);
                 gAvpData.avpNum = 6;
                 diaAvpEncode_setValue(&avp[1], DIA_AVP_CODE_CX_SIP_ITEM_NUM, (diaEncodeAvpData_u) pAuthData->respData.authAka.itemOrder, NULL);
                 diaAvpEncode_setValue(&avp[2], DIA_AVP_CODE_CX_SIP_AUTHENTICATE, (diaEncodeAvpData_u)&pAuthData->respData.authAka.sipAuthenticate, NULL);
@@ -318,14 +320,14 @@ static osStatus_e diaCxMar_encodeAuthData(osMBuf_t* pDiaBuf, void* pData)
                 diaAvpEncode_setValue(&avp[5], DIA_AVP_CODE_CX_INTEGRITY_KEY, (diaEncodeAvpData_u)&pAuthData->respData.authAka.ik, NULL);
                 break;
             case DIA_CX_AUTH_SCHEME_SIP_DIGEST:     //"SIP Digest"
-                osPL_setStr(&schemeAvpData, "SIP Digest", 10);
+                osVPL_setStr(&schemeAvpData, "SIP Digest", 10, false);
                 gAvpData.avpNum = 4;
                 diaAvpEncode_setValue(&avp[1], DIA_AVP_CODE_CX_DIGEST_REALM, (diaEncodeAvpData_u)&pAuthData->respData.authDigest.digestRealm, NULL);
                 diaAvpEncode_setValue(&avp[2], DIA_AVP_CODE_CX_DIGEST_QOP, (diaEncodeAvpData_u)&pAuthData->respData.authDigest.digestQop, NULL);
                 diaAvpEncode_setValue(&avp[3], DIA_AVP_CODE_CX_DIGEST_HA1, (diaEncodeAvpData_u)&pAuthData->respData.authDigest.digestHa1, NULL);
                 break;
             case DIA_CX_AUTH_SCHEME_EARLY_IMS:      //"Early IMS Security"
-                osPL_setStr(&schemeAvpData, "Early IMS Security", 18);
+                osVPL_setStr(&schemeAvpData, "Early IMS Security", 18, false);
                 gAvpData.avpNum = 2;
 				if(pAuthData->respData.authGiba.isIPv4)
 				{

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "osHexDump.h"
+#include "osMemory.h"
 
 #include "diaConfig.h"
 #include "diaTransportIntf.h"
@@ -32,6 +33,7 @@ void dia_init()
 void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
 {
 	osStatus_e status = OS_STATUS_OK;
+    diaMsgDecoded_t* pDiaDecoded = NULL;
 
 	if(!pTpMsg)
     {
@@ -50,7 +52,6 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
 
 	logInfo("received a pTpMsg, msgType=%d, pDcb=%p.", pTpMsg->tpMsgType, pDcb);
 
-	diaMsgDecoded_t* pDiaDecoded = NULL;
 	if(pTpMsg->tpMsgType == DIA_TRANSPORT_MSG_TYPE_PEER_MSG)
     {
         pDiaDecoded = diaMsg_decode(pTpMsg->peerMsg.pDiaBuf);
@@ -84,6 +85,17 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
 	}
 
 EXIT:
+	if(pTpMsg)
+	{
+		if(pTpMsg->tpMsgType == DIA_TRANSPORT_MSG_TYPE_PEER_MSG)
+		{
+			osMBuf_dealloc(pTpMsg->peerMsg.pDiaBuf);
+			osfree(pDiaDecoded);
+		}
+
+		osfree(pTpMsg);
+	}
+
 	return;
 }
 
@@ -104,6 +116,8 @@ uint32_t diaGetOrigStateId()
 
 osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmdCode_e cmd, bool isReq, diaResultCode_e resultCode) 
 {
+	DEBUG_BEGIN
+
 	osStatus_e status = OS_STATUS_OK;
 
 	if(!pDcb)
@@ -129,18 +143,19 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 
 			if(isReq)
 			{
-				pBuf = diaBuildCer(pHostIpList, vendorId, &productName->pl, pSupportedVendorId, pAuthAppId, pAcctAppId, pVendorSpecificAppId, isFWRevExist ? &firmwareRev : NULL, NULL, &pDcb->cmdHdrInfo);
+				pBuf = diaBuildCer(pHostIpList, vendorId, productName, pSupportedVendorId, pAuthAppId, pAcctAppId, pVendorSpecificAppId, isFWRevExist ? &firmwareRev : NULL, NULL, &pDcb->cmdHdrInfo);
 			}
 			else
 			{
-				pBuf = diaBuildCea(resultCode, pHostIpList, vendorId, &productName->pl, pSupportedVendorId, pAuthAppId, pAcctAppId, pVendorSpecificAppId, isFWRevExist ? &firmwareRev : NULL, NULL, &pDcb->cmdHdrInfo);
+				pBuf = diaBuildCea(resultCode, pHostIpList, vendorId, productName, pSupportedVendorId, pAuthAppId, pAcctAppId, pVendorSpecificAppId, isFWRevExist ? &firmwareRev : NULL, NULL, &pDcb->cmdHdrInfo);
 			}
 
-			//to-do, also free pHostIpList, productName
+			osfree(pHostIpList);		//to-do, this is to be enhanced, via osVList_free.
+			osVPL_free(productName);
 			osList_free(pSupportedVendorId);
 			osList_free(pAuthAppId);
 			osList_free(pAcctAppId);
-			//to-do osList_free(pVendorSpecificAppId);
+			osList_free(pVendorSpecificAppId);
 			break;
 		}
 		case DIA_CMD_CODE_DWR:
@@ -161,6 +176,8 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 	hexdump(stdout, pBuf->buf, pBuf->end);
 
 	transportStatus_e tpStatus = transport_send(TRANSPORT_APP_TYPE_DIAMETER, pDcb, &pDcb->tpInfo, pBuf, NULL);
+	osMBuf_dealloc(pBuf);
+	
 	if(tpStatus == TRANSPORT_STATUS_TCP_FAIL || tpStatus == TRANSPORT_STATUS_FAIL)
 	{
 		//take no further action, expect transport to send a seperate notify message
@@ -169,5 +186,6 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 	}
 
 EXIT:
+	DEBUG_END
 	return status;
 }

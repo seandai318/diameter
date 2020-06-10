@@ -84,10 +84,10 @@ typedef struct diaMsgDecoded {
 
 
 typedef struct diaRealmHost {
-    osPointerLen_t origHost;
-    osPointerLen_t origRealm;
-    osPointerLen_t destHost;
-    osPointerLen_t destRealm;
+    osVPointerLen_t origHost;
+    osVPointerLen_t origRealm;
+    osVPointerLen_t destHost;
+    osVPointerLen_t destRealm;
 } diaRealmHost_t;
 
 
@@ -110,7 +110,7 @@ typedef struct diaHdrSessInfo {
 	diaCmdHdrInfo_t hdrInfo;
 //    osPointerLen_t h2hId;
 //    osPointerLen_t e2eId;
-    osPointerLen_t sessionId;
+    osVPointerLen_t sessionId;
 } diaHdrSessInfo_t;
 
 

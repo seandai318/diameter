@@ -49,7 +49,7 @@ typedef struct diaBaseDwaParam {
 
 
 osMBuf_t* diaBuildDwr(osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo);
-osMBuf_t* diaBuildDwa(diaResultCode_e resultCode, osPointerLen_t* errorMsg, diaEncodeAvp_t* failedEvp, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo);
+osMBuf_t* diaBuildDwa(diaResultCode_e resultCode, osVPointerLen_t* errorMsg, diaEncodeAvp_t* failedEvp, osList_t* pExtraOptList, diaCmdHdrInfo_t* pCmdHdrInfo);
 
 
 #endif

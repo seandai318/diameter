@@ -19,6 +19,10 @@ static osStatus_e diaAvp_encodeGrouped(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, u
 
 static osStatus_e diaAvp_decodeGroup(diaAvpGroupedData_t* pGroupedData, diaCmdCode_e diaCmd);
 
+static void diaEncodeAvp_cleanup(void* pGrpAvp);
+static void diaEncodeAvpGrp_cleanup(void* pGrpAvp);
+static void diaEncodeAvpGrpData_cleanup(void* pData);
+
 
 osStatus_e diaAvp_encode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t avpCode, diaEncodeAvpData_u avpData)
 {
@@ -254,8 +258,7 @@ osStatus_e diaAvp_decode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t* avpCo
 	switch (pAvpData->dataType = diaGetAvpInfo(diaCmd, *avpCode, NULL, NULL))
 	{
 		case DIA_AVP_DATA_TYPE_OCTET_STRING:
-			pAvpData->dataStr.p = &pDiaBuf->buf[pDiaBuf->pos];
-			pAvpData->dataStr.l = avpLen - *avpCode & DIA_AVP_FLAG_VENDOR_SPECIFIC ? 12 : 8;
+			osVPL_set(&pAvpData->dataStr, &pDiaBuf->buf[pDiaBuf->pos], avpLen - (*avpCode & DIA_AVP_FLAG_VENDOR_SPECIFIC ? 12 : 8), false); 
 			break;
     	case DIA_AVP_DATA_TYPE_INT32:
 			pAvpData->data32 = htobe32(*(uint32_t*)&pDiaBuf->buf[pDiaBuf->pos]);
@@ -324,33 +327,19 @@ EXIT:
 }
 
 
-void diaAvp_cleanup(void* pData)
-{
-	if(!pData)
-	{
-		return;
-	}
-
-	diaAvp_t* pAvp = pData;
-
-	if(pAvp->avpData.dataType == DIA_AVP_DATA_TYPE_GROUPED)
-	{
-		osList_cleanup(&pAvp->avpData.dataGrouped.dataList);
-	}
-}
-
-
 //this function is the first step to construct a group AVP
 diaEncodeAvp_t* diaAvpGrp_create(uint32_t avpCode)
 {
 
-    diaEncodeAvp_t* pGrpAvp = osmalloc(sizeof(diaEncodeAvp_t), NULL);
+    diaEncodeAvp_t* pGrpAvp = oszalloc(sizeof(diaEncodeAvp_t), diaEncodeAvpGrp_cleanup);
     if(!pGrpAvp)
     {
         logError("fail to allocate pGrpAvp.");
         return NULL;
     }
-    diaEncodeAvp_t* pAvp = osmalloc(sizeof(diaEncodeAvp_t)*DIA_CX_MAX_SERVER_CAPABILITY_ITEM, NULL);
+
+	//can not use diaEncodeAvp_cleanup() here as the allocation is for an array of diaEncodeAvp_t.  The clean up of individual avp memory will be called inside diaEncodeAvpGrpData_cleanup().
+    diaEncodeAvp_t* pAvp = oszalloc(sizeof(diaEncodeAvp_t)*DIA_CONFIG_MAX_AVP_INSIDE_GRP_AVP, NULL);
     if(!pAvp)
     {
         logError("fail to allocate pAvp.");
@@ -359,7 +348,7 @@ diaEncodeAvp_t* diaAvpGrp_create(uint32_t avpCode)
         return NULL;
     }
 
-    diaEncodeAvpGroupedData_t* pGrpAvpData = osmalloc(sizeof(diaEncodeAvpGroupedData_t), NULL);
+    diaEncodeAvpGroupedData_t* pGrpAvpData = osmalloc(sizeof(diaEncodeAvpGroupedData_t), diaEncodeAvpGrpData_cleanup);
     if(!pGrpAvpData)
     {
         logError("fail to allocate pGrpAvpData.");
@@ -392,7 +381,7 @@ diaEncodeAvp_t* diaAvpGrp_addAvp(diaEncodeAvp_t* pGrpAvp, uint32_t avpCode, diaE
     }
 
 	diaEncodeAvpGroupedData_t* pGrpAvpData = pGrpAvp->avpData.pDataGrouped;
-    if(pGrpAvpData->avpNum < DIA_CX_MAX_SERVER_CAPABILITY_ITEM -1)
+    if(pGrpAvpData->avpNum < DIA_CONFIG_MAX_AVP_INSIDE_GRP_AVP -1)
     {
         pAvp = &pGrpAvpData->pDiaAvp[pGrpAvpData->avpNum++];
         diaAvpEncode_setValue(pAvp, avpCode, avpData, avpEncodeFunc);
@@ -401,51 +390,87 @@ diaEncodeAvp_t* diaAvpGrp_addAvp(diaEncodeAvp_t* pGrpAvp, uint32_t avpCode, diaE
     return pAvp;
 }
 
-
+#if 0
 //use a group AVP has been used (diameter message has been constructed), this function shall be called to reclaim used memories
-void diaAvpGrp_cleanup(diaEncodeAvp_t* pGrpAvp)
+void diaAvpGrp_cleanup(void* pGrpAvp)
 {
     if(!pGrpAvp)
     {
         return;
     }
 
-    osfree(pGrpAvp->avpData.pDataGrouped->pDiaAvp);
-    osfree(pGrpAvp->avpData.pDataGrouped);
+    osfree(((diaEncodeAvp_t*)pGrpAvp)->avpData.pDataGrouped->pDiaAvp);
+    osfree(((diaEncodeAvp_t*)pGrpAvp)->avpData.pDataGrouped);
     osfree(pGrpAvp);
 }
-
-#if 0
-typedef struct {
-	contact;
-	path;
-} cxTrstorationInfo_t;
-osList_t cxTrstorationInfo;		//cxTrstorationInfo_t
-
-contact = {CONTACT, NULL, *contactInfo};
-path = {PATH, NULL, pathinfo};
-osList_t optAvpList;
-
-diaEncodeAvp_t scscfRest;
-optAvpList.append(&optAvpList, &scscfRest);
-osList.append(&scscfRest.dataGrouped, &contact);
-osList.append(&scscfRest.dataGrouped, &&path);
-
-
-diaEncodeAvpGroupedData_t gd[2];
-setGD1;
-setGD2;
-
-diaEncodeAvp_t userName;
-diaEncodeAvpSetValue(&userName, DIA_AVP_CODE_USER_NAME, 0xc0, DIA_AVP_VENDOR_3GPP, username, NULL);
-
-osList_t scscfRestorationInfo;
-scscfRestorationInfo.apvCode = DIA_AVP_CODE_CX_RESTORATION_INFO;
-scscfRestorationInfo.avpData.pDataGrouped = 
-
-osList_append(&scscfRestorationInfo, &userName);
-osList_append(&scscfRestorationInfo, &restorationInfo);
-
-
-osStatus_e diaAvp_setGroupedValue()
 #endif
+
+
+void diaAvp_cleanup(void* pData)
+{
+    if(!pData)
+    {
+        return;
+    }
+
+    diaAvp_t* pAvp = pData;
+
+    if(pAvp->avpData.dataType == DIA_AVP_DATA_TYPE_GROUPED)
+    {
+        osList_cleanup(&pAvp->avpData.dataGrouped.dataList);
+    }
+}
+
+
+static void diaEncodeAvp_cleanup(void* pData)
+{
+    if(!pData)
+    {
+        return;
+    }
+
+    diaEncodeAvp_t* pAvp = pData;
+
+    switch(diaGetAvpEncodeDataType(pAvp->avpCode))
+	{
+		case DIA_AVP_ENCODE_DATA_TYPE_GROUP:
+        	osfree(pAvp->avpData.pDataGrouped);
+			break;
+		case DIA_AVP_ENCODE_DATA_TYPE_STR:
+			osVPL_free(pAvp->avpData.pDataStr);
+			break;
+		default:
+			break;
+    }
+}
+
+
+//use a group AVP has been used (diameter message has been constructed), this function shall be called to reclaim used memories
+static void diaEncodeAvpGrp_cleanup(void* pGrpAvp)
+{
+    if(!pGrpAvp)
+    {
+        return;
+    }
+
+    osfree(((diaEncodeAvp_t*)pGrpAvp)->avpData.pDataGrouped);
+}
+
+//for cleanup() function, the own data structure does not need to be freed, as calling of the osfree() that triggers the cleanup() will free it
+static void diaEncodeAvpGrpData_cleanup(void* pData)
+{
+    if(!pData)
+    {
+        return;
+    }
+
+	diaEncodeAvpGroupedData_t* pDataGrouped = pData;
+
+	//cleanup the avpData for each avp.  avp itself will be freed as part of osfree(pDataGrouped->pDiaAvp).  when pDataGrouped->pDiaAvp was created, its cleanup function shall be NULL
+	for(int i=0; i<pDataGrouped->avpNum; i++)
+	{
+		diaEncodeAvp_cleanup(&pDataGrouped->pDiaAvp[i]);
+	}
+	
+	osfree(pDataGrouped->pDiaAvp);
+}

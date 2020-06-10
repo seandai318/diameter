@@ -280,14 +280,6 @@ transportStatus_e diaConnMgr_startConn(struct diaConnBlock* pDcb)
 	pDcb->tpInfo.isCom = true;
 	pDcb->tpInfo.tpType = TRANSPORT_TYPE_TCP;
 	pDcb->tpInfo.tcpFd = -1;
-#if 0
-	char ip[INET_ADDRSTRLEN];
-	if(osConvertntoPL(&pDcb->peer, (osIpPort_t*)&tpInfo.peer, ip) != OS_STATUS_OK)
-	{
-		logError("fails to osConvertntoPL for peer(%r:%d).", &tpInfo.peer.ip, tpInfo.peer.port);
-		return TRANSPORT_STATUS_FAIL;
-	}
-#endif
 	diaConfig_getHost1(&pDcb->tpInfo.local); 
 	pDcb->tpInfo.protocolUpdatePos = 0;
  
