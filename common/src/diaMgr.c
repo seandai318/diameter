@@ -19,13 +19,13 @@
 
 static uint32_t diaOrigStateId;
 
-void dia_init()
+void dia_init(char* diaConfigFolder)
 {
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME, &tp);
     diaOrigStateId = tp.tv_sec - DIA_BASE_CER_ORIG_STATE_EPOCH_VALUE;
 
-	diaConfig_init();
+	diaConfig_init(diaConfigFolder);
 	diaConnMgr_init();
 }
 
