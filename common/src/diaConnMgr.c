@@ -21,7 +21,8 @@ static void diaConnTimerFunc(uint64_t timerId, void* ptr);
 
 
 
-static diaConnIntf_t gDiaConnIntf[DIA_MAX_INTERFACE_NUM];
+//static diaConnIntf_t gDiaConnIntf[DIA_MAX_INTERFACE_NUM];
+static diaConnIntf_t* gDiaConnIntf = NULL;
 static uint8_t intfNum;
 
 
@@ -31,7 +32,15 @@ osStatus_e diaConnMgr_init()
 
 	intfNum = 0;
 
-	for(int i=0; i<DIA_MAX_INTERFACE_NUM; i++)
+	gDiaConnIntf = oszalloc(sizeof(diaConnIntf_t)* *(uint64_t*)diaConfig_getConfig(DIA_XML_MAX_INTERFACE_NUM), NULL);
+	if(!gDiaConnIntf)
+	{
+		logError("fails to oszalloc for gDiaConnIntf.");
+		status = OS_ERROR_SYSTEM_FAILURE;
+		goto EXIT;
+	}
+
+	for(int i=0; i<*(uint64_t*)diaConfig_getConfig(DIA_XML_MAX_INTERFACE_NUM); i++)
 	{
 		osList_init(&gDiaConnIntf[i].priorityGroup.activePeerList);
 		osList_init(&gDiaConnIntf[i].priorityGroup.waitingPeerList);
@@ -172,9 +181,9 @@ osStatus_e diaConnProv(diaIntfInfo_t* pIntfInfo, diaConnProv_t* pConnProv)
 
 	if(pIntfInfo->intfId < 0)
 	{
-		if(intfNum >= DIA_MAX_INTERFACE_NUM)
+		if(intfNum >= *(uint64_t*)diaConfig_getConfig(DIA_XML_MAX_INTERFACE_NUM))
 		{
-			logError("all diameter interfaces have been used up, max number=%d.", DIA_MAX_INTERFACE_NUM);
+			logError("all diameter interfaces have been used up, max number=%d.", *(uint64_t*)diaConfig_getConfig(DIA_XML_MAX_INTERFACE_NUM));
 			status = OS_ERROR_INVALID_VALUE;
 			goto EXIT;
 		}
@@ -377,8 +386,8 @@ EXIT:
 }
 
 
-static diaConnIntf_t gDiaConnIntf[DIA_MAX_INTERFACE_NUM];
-static uint8_t intfNum;
+//static diaConnIntf_t gDiaConnIntf[DIA_MAX_INTERFACE_NUM];
+//static uint8_t intfNum;
 	
 
 static osStatus_e diaConnAddNewPeer(diaConnIntf_t* pConnIntf, diaIntfInfo_t* pIntfInfo, diaConnProv_t* pConnProv)

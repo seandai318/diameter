@@ -14,32 +14,6 @@
 #include "diaAvp.h"
 
 
-typedef enum {
-    DIA_XML_DEST_HOST,
-    DIA_XML_IS_SERVER,      //if the diameter functions as a server
-    DIA_XML_ORIG_HOST,      //example value: "cscf01.ims.seandai.com"
-    DIA_XML_DEST_REALM,     //example value: "ims.seandai.com"
-    DIA_XML_ORIG_REALM,     //example value: "ims.seandai.com"
-    DIA_XML_PRODUCT_NAME,           //example value: "Sean's Diameter Stack"
-    DIA_XML_CONFIG_PEER_IP,         //example value: "192.168.1.92"
-    DIA_XML_CONFIG_LOCAL_IP,        //example value: "192.168.1.65"
-    DIA_XML_MAX_HOST_IP_NUM,        //normally value = 1
-    DIA_XML_CONFIG_PEER_PORT,       //normally value = 3868    //this is duplicate of DIA_CONFIG_LISTEN_PORT, may be change to CLIENT_PORT and SERVER_PORT
-    DIA_XML_MAX_SAME_AVP_NUM,       //example value: 5       //how many the same name AVPs can be in a diameter message
-    DIA_XML_FIRMWARE_REVISION,      //example value: 0
-    DIA_XML_MAX_INTERFACE_NUM,      //example value: 5
-    DIA_XML_CONFIG_LISTEN_PORT,     //normally value = 3868
-    DIA_XML_CONN_TIMER_WATCHDOG,                //example value: 40000       //timer to send DWR, also be used for other DWR related timer
-    DIA_XML_CONN_TIMER_WAIT_CONN,               //example value: 60000       //started a connection, wait the conn to be established
-    DIA_XML_CONN_TIMER_RETRY_CONN,              //example value: 120000      //conn is down, retry new conn
-    DIA_XML_CONFIG_MAX_AVP_INSIDE_GRP_AVP,      //example value: 10
-    DIA_XML_CONN_TIMER_TRANSMIT_WAIT_TIME,      //example value: 5000        //wait for a msg to be delivered to the peer
-    DIA_XML_CX_MAX_SERVER_CAPABILITY_ITEM,      //example value: 10
-    DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE,   //the expected maximum diameter message size
-    DIA_XML_MAX_DATA_NAME_NUM,
-} diaConfig_xmlDataName_e;
-
-
 typedef struct {
     diaConfig_xmlDataName_e eDataName;
     osPointerLen_t dataName;
@@ -66,7 +40,7 @@ diaConfig_xmlData_t diaConfig_xmlData[DIA_XML_MAX_DATA_NAME_NUM] = {
     {DIA_XML_CONFIG_PEER_PORT,  {"DIA_CONFIG_PEER_PORT", strlen("DIA_CONFIG_PEER_PORT")},   OS_XML_DATA_TYPE_XS_SHORT, 0},
     {DIA_XML_MAX_SAME_AVP_NUM,  {"DIA_MAX_SAME_AVP_NUM", strlen("DIA_MAX_SAME_AVP_NUM")},   OS_XML_DATA_TYPE_XS_SHORT, 5},
     {DIA_XML_FIRMWARE_REVISION, {"DIA_FIRMWARE_REVISION", strlen("DIA_FIRMWARE_REVISION")}, OS_XML_DATA_TYPE_XS_SHORT, 0},
-    {DIA_XML_MAX_INTERFACE_NUM, {"DIA_MAX_INTERFACE_NUM", strlen("DIA_MAX_INTERFACE_NUM")}, DIA_XML_MAX_INTERFACE_NUM, 5},
+    {DIA_XML_MAX_INTERFACE_NUM, {"DIA_MAX_INTERFACE_NUM", strlen("DIA_MAX_INTERFACE_NUM")}, OS_XML_DATA_TYPE_XS_SHORT, 5},
     {DIA_XML_CONFIG_LISTEN_PORT,        {"DIA_CONFIG_LISTEN_PORT", strlen("DIA_CONFIG_LISTEN_PORT")},       OS_XML_DATA_TYPE_XS_SHORT, 0},
     {DIA_XML_CONN_TIMER_WATCHDOG,       {"DIA_CONN_TIMER_WATCHDOG", strlen("DIA_CONN_TIMER_WATCHDOG")},     OS_XML_DATA_TYPE_XS_LONG, 0},
     {DIA_XML_CONN_TIMER_WAIT_CONN,      {"DIA_CONN_TIMER_WAIT_CONN", strlen("DIA_CONN_TIMER_WAIT_CONN")},   OS_XML_DATA_TYPE_XS_LONG, 0},
@@ -77,18 +51,26 @@ diaConfig_xmlData_t diaConfig_xmlData[DIA_XML_MAX_DATA_NAME_NUM] = {
     {DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE,  {"DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE", strlen("DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE")},   OS_XML_DATA_TYPE_XS_SHORT, 0}};
 
 
-static osStatus_e diaConfig_getConfiguration(char* configFolder, char* xsdFile, char* xmlFile);
-static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t* value, osXmlDataType_e dataType);
+static osStatus_e diaConfig_getXmlConfig(char* configFolder, char* xsdFile, char* xmlFile);
+static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t* value, osXmlDataType_e dataType, osXmlDataCallbackInfo_t* cbInfo);
 
-static osVPointerLen_t gPlDiaHostIp[DIA_MAX_HOST_IP_NUM];
+//static osVPointerLen_t gPlDiaHostIp[DIA_MAX_HOST_IP_NUM];
+static osVPointerLen_t* gPlDiaHostIp = NULL;
 static uint32_t diaHostNum;
 
 
 void diaConfig_init(char* configFolder)
 {
-	if(diaConfig_getConfiguration(configFolder, DIA_CONFIG_XSD_FILE_NAME, DIA_CONFIG_XML_FILE_NAME) != OS_STATUS_OK)
+	if(diaConfig_getXmlConfig(configFolder, DIA_CONFIG_XSD_FILE_NAME, DIA_CONFIG_XML_FILE_NAME) != OS_STATUS_OK)
 	{
-		logError("fails to diaConfig_getConfiguration.");
+		logError("fails to diaConfig_getXmlConfig.");
+		return;
+	}
+
+	gPlDiaHostIp = oszalloc(sizeof(osVPointerLen_t)* *(uint64_t*)diaConfig_getConfig(DIA_MAX_HOST_IP_NUM), NULL);
+	if(!gPlDiaHostIp)
+	{
+		logError("fails to oszalloc for gPlDiaHostIp.");
 		return;
 	}
 
@@ -97,7 +79,9 @@ void diaConfig_init(char* configFolder)
 	diaWriteU16(pHostIp, htobe16(OS_AF_IPv4));
 
     struct sockaddr_in saddr;
-    inet_pton(AF_INET, DIA_CONFIG_LOCAL_IP, &saddr.sin_addr.s_addr);
+	osIpPort_t ipPort = {{*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_CONFIG_LOCAL_IP), false, false}};
+	osConvertPLton(&ipPort, false, &saddr);
+   // inet_pton(AF_INET, DIA_CONFIG_LOCAL_IP, &saddr.sin_addr.s_addr);
 
 	//saddr.sin_addr.s_addr already in big enden order
     diaWriteU32(&pHostIp[2], saddr.sin_addr.s_addr);	
@@ -112,6 +96,46 @@ void diaConfig_init(char* configFolder)
 }
 		
 
+void* diaConfig_getConfig(diaConfig_xmlDataName_e dataName)
+{
+	switch(dataName)
+	{
+		case DIA_XML_DEST_HOST:
+		case DIA_XML_ORIG_HOST:
+		case DIA_XML_DEST_REALM:
+		case DIA_XML_ORIG_REALM:
+		case DIA_XML_PRODUCT_NAME:
+		case DIA_XML_CONFIG_PEER_IP:
+		case DIA_XML_CONFIG_LOCAL_IP:
+			return &diaConfig_xmlData[dataName].xmlStr;
+			break;
+		case DIA_XML_IS_SERVER:
+			return &diaConfig_xmlData[dataName].xmlIsTrue;
+			break;
+		case DIA_XML_MAX_HOST_IP_NUM:
+		case DIA_XML_CONFIG_PEER_PORT:
+		case DIA_XML_MAX_SAME_AVP_NUM:
+		case DIA_XML_FIRMWARE_REVISION:
+		case DIA_XML_MAX_INTERFACE_NUM:
+		case DIA_XML_CONFIG_LISTEN_PORT:
+		case DIA_XML_CONN_TIMER_WATCHDOG:
+		case DIA_XML_CONN_TIMER_WAIT_CONN:
+		case DIA_XML_CONN_TIMER_RETRY_CONN:
+		case DIA_XML_CONFIG_MAX_AVP_INSIDE_GRP_AVP:
+		case DIA_XML_CONN_TIMER_TRANSMIT_WAIT_TIME:
+		case DIA_XML_CX_MAX_SERVER_CAPABILITY_ITEM:
+		case DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE:
+			return &diaConfig_xmlData[dataName].xmlInt;
+			break;
+		default:
+			logError("dataName is not defined(%d).", dataName);
+			break;
+	}
+
+	return NULL;
+}
+
+ 
 void diaConfig_getHostRealm(diaRealmHost_t* pRealmHost)
 {
 	if(!pRealmHost)
@@ -125,25 +149,38 @@ void diaConfig_getHostRealm(diaRealmHost_t* pRealmHost)
     osVPL_init(&pRealmHost->destHost, false);
     osVPL_init(&pRealmHost->destRealm, false);
 
-	osVPL_setStr(&pRealmHost->origRealm, DIA_ORIG_REALM, strlen(DIA_ORIG_REALM), false);  
-	osVPL_setStr(&pRealmHost->origHost, DIA_ORIG_HOST, strlen(DIA_ORIG_HOST), false);
-	osVPL_setStr(&pRealmHost->destRealm, DIA_DEST_REALM, strlen(DIA_DEST_REALM), false);
+	osVPL_setPL(&pRealmHost->origRealm, diaConfig_getConfig(DIA_XML_ORIG_REALM), false);
+	osVPL_setPL(&pRealmHost->origHost, diaConfig_getConfig(DIA_XML_ORIG_HOST), false); 
+	osVPL_setPL(&pRealmHost->destRealm, diaConfig_getConfig(DIA_XML_DEST_REALM), false);
+
+//	osVPL_setStr(&pRealmHost->origRealm, DIA_ORIG_REALM, strlen(DIA_ORIG_REALM), false);  
+//	osVPL_setStr(&pRealmHost->origHost, DIA_ORIG_HOST, strlen(DIA_ORIG_HOST), false);
+//	osVPL_setStr(&pRealmHost->destRealm, DIA_DEST_REALM, strlen(DIA_DEST_REALM), false);
 } 
 
 
 void diaConfig_getHost(osPointerLen_t* host, int* port)
 {
+	*host = *(osPointerLen_t*) diaConfig_getConfig(DIA_XML_CONFIG_LOCAL_IP);
+	*port = *(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_LISTEN_PORT);	
+#if 0
     host->p = DIA_CONFIG_LOCAL_IP;
     host->l = strlen(DIA_CONFIG_LOCAL_IP);
     *port = DIA_CONFIG_LISTEN_PORT;
+#endif
 }
 
 
 void diaConfig_getHost1(struct sockaddr_in* pHost)
 {
+    struct sockaddr_in saddr;
+    osIpPort_t ipPort = {{*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_CONFIG_LOCAL_IP), false, false}, *(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_LISTEN_PORT)};
+    osConvertPLton(&ipPort, true, pHost);
+#if 0
     pHost->sin_family = AF_INET;
     inet_pton(AF_INET, DIA_CONFIG_LOCAL_IP, &pHost->sin_addr);
     pHost->sin_port = htons(DIA_CONFIG_LISTEN_PORT);
+#endif
 }
 
 
@@ -155,18 +192,22 @@ void diaConfig_getPeer(diaIntfType_e intfType, osIpPort_t* pPeer)
 		return;
 	}
 
+	pPeer->ip.pl = *(osPointerLen_t*)diaConfig_getConfig(DIA_XML_CONFIG_PEER_IP);
+    pPeer->ip.isPDynamic = false;
+	pPeer->port = *(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_PEER_PORT);
+#if 0
 	pPeer->ip.pl.p = DIA_CONFIG_PEER_IP;
 	pPeer->ip.pl.l = strlen(DIA_CONFIG_PEER_IP);
 	pPeer->ip.isPDynamic = false;
 	pPeer->port = DIA_CONFIG_PEER_PORT;
-
+#endif
 	return;
 }
 
 
 bool diaConfig_isServer()
 {
-	return DIA_IS_SERVER;
+	return *(bool*) diaConfig_getConfig(DIA_XML_IS_SERVER);
 }
 
 
@@ -201,9 +242,13 @@ osVPointerLen_t* diaConfig_getProductName(diaIntfType_e intfType, osVPointerLen_
 		pProductName->isVPLDynamic = true;
 	}
 
+	pProductName->pl = *(osPointerLen_t*)diaConfig_getConfig(DIA_XML_PRODUCT_NAME);
+	pProductName->isPDynamic = false;
+#if 0
 	pProductName->pl.p = DIA_PRODUCT_NAME;
 	pProductName->pl.l = strlen(DIA_PRODUCT_NAME);
 	pProductName->isPDynamic = false;
+#endif
 
 	return pProductName;
 }
@@ -347,7 +392,7 @@ bool diaConfig_getFirmwareRev(uint32_t* pFWRev)
 }
 
 
-osStatus_e diaConfig_getConfiguration(char* configFolder, char* xsdFile, char* xmlFile)
+osStatus_e diaConfig_getXmlConfig(char* configFolder, char* xsdFile, char* xmlFile)
 {
 	osStatus_e status = OS_STATUS_OK;
 	osMBuf_t* xsdMBuf = NULL;
@@ -401,7 +446,7 @@ osStatus_e diaConfig_getConfiguration(char* configFolder, char* xsdFile, char* x
         goto EXIT;
     }
 
-    osXml_parse(xmlBuf, pXsdRoot, diaConfig_xmlCallback);
+    osXml_parse(xmlBuf, pXsdRoot, diaConfig_xmlCallback, NULL);
 
 EXIT:
 	osfree(pXsdRoot);
@@ -415,7 +460,7 @@ EXIT:
 }
 
 
-static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t* value, osXmlDataType_e dataType)
+static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t* value, osXmlDataType_e dataType, osXmlDataCallbackInfo_t* cbInfo)
 {
 	osStatus_e status = OS_STATUS_OK;
 
@@ -458,9 +503,9 @@ static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t
                     }
                     logInfo("diaConfig_xmlData[%d].dataName = %r, value=%ld", i, elemName, diaConfig_xmlData[i].xmlInt);
 					break;
-    			case OS_XML_DATA_TYPE_COMPLEX:
+    			case OS_XML_DATA_TYPE_XS_STRING:
 					diaConfig_xmlData[i].xmlStr = *value;
-                    logInfo("diaConfig_xmlData[%d].dataName = %r, value=%r", i, elemName, diaConfig_xmlData[i].xmlStr);
+                    logInfo("diaConfig_xmlData[%d].dataName =%r, value= %r", i, elemName, &diaConfig_xmlData[i].xmlStr);
 					break;
 				default:
 					logError("unexpected data type(%d) for element(%r).", dataType, elemName);

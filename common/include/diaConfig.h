@@ -19,7 +19,6 @@
 #define  DIA_CONFIG_XML_FILE_NAME		"diaConfig.xml"
 
 
-#if 0
 typedef enum {
 	DIA_XML_DEST_HOST,
 	DIA_XML_IS_SERVER,		//if the diameter functions as a server
@@ -46,6 +45,41 @@ typedef enum {
 } diaConfig_xmlDataName_e;
 
 
+
+
+#define DIA_MAX_SAME_AVP_NUM    			5       //how many the same name AVPs can be in a diameter message
+#define DIA_CX_MAX_SERVER_CAPABILITY_ITEM   10
+#define DIA_MAX_INTERFACE_NUM   			5
+#define DIA_MAX_HOST_IP_NUM 				(*(uint64_t*)diaConfig_getConfig(DIA_XML_MAX_HOST_IP_NUM))				//default 1
+
+#define DIA_IS_SERVER       				(*(bool*)diaConfig_getConfig(DIA_XML_IS_SERVER))					//false
+
+#define DIA_ORIG_REALM      				(*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_ORIG_REALM))			//"ims.globalstar.com"
+#define DIA_ORIG_HOST       				(*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_ORIG_HOST))			//"cscf01-hrr.ims.globalstar.com"
+#define DIA_DEST_REALM      				(*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_DEST_REALM))			//"ims.globalstar.com"
+#define DIA_DEST_HOST       				(*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_DEST_HOST))			//0
+
+
+#define DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE    (*(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE))	//5100
+#define DIA_CONFIG_MAX_AVP_INSIDE_GRP_AVP       (*(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_MAX_AVP_INSIDE_GRP_AVP))	//10
+
+#define DIA_CONFIG_LOCAL_IP     			(*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_CONFIG_LOCAL_IP))	//"192.168.1.65"
+#define DIA_CONFIG_LISTEN_PORT  			(*(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_LISTEN_PORT))		//3868
+#define DIA_CONFIG_PEER_IP      			(*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_CONFIG_PEER_IP))		//"192.168.1.92"
+#define DIA_CONFIG_PEER_PORT    			(*(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_PEER_PORT))			//3868, this is duplicate of DIA_CONFIG_LISTEN_PORT, may be change to CLIENT_PORT and SERVER_PORT
+
+#define DIA_CONN_TIMER_WAIT_CONN            (*(uint64_t*)diaConfig_getConfig(DIA_XML_CONN_TIMER_WAIT_CONN))		//60000       //started a connection, wait the conn to be established
+#define DIA_CONN_TIMER_RETRY_CONN           (*(uint64_t*)diaConfig_getConfig(DIA_XML_CONN_TIMER_RETRY_CONN))	//120000      //conn is down, retry new conn
+//#define DIA_CONN_TIMER_WATCHDOG           30000       //timer to send DWR, also be used for other DWR related timer
+#define DIA_CONN_TIMER_WATCHDOG             (*(uint64_t*)diaConfig_getConfig(DIA_XML_CONN_TIMER_WATCHDOG))		//40000       //timer to send DWR, also be used for other DWR related timer
+#define DIA_CONN_TIMER_TRANSMIT_WAIT_TIME   (*(uint64_t*)diaConfig_getConfig(DIA_XML_CONN_TIMER_TRANSMIT_WAIT_TIME))	//5000        //wait for a msg to be delivered to the peer
+
+
+#define DIA_FIRMWARE_REVISION       		(*(uint64_t*)diaConfig_getConfig(DIA_XML_FIRMWARE_REVISION))		//0
+#define DIA_PRODUCT_NAME            		(*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_PRODUCT_NAME))		//"Sean's Diameter Stack"
+
+
+#if 0
 typedef struct {
 	diaConfig_xmlDataName_e eDataName;
 	osPointerLen_t dataName;
@@ -84,7 +118,7 @@ static diaConfig_xmlData_t diaConfig_xmlData[DIA_XML_MAX_DATA_NAME_NUM] = {
 #endif
 
    
-#if 1
+#if 0
 #define DIA_MAX_SAME_AVP_NUM	5		//how many the same name AVPs can be in a diameter message
 #define DIA_CX_MAX_SERVER_CAPABILITY_ITEM	10
 #define DIA_MAX_INTERFACE_NUM	5
@@ -162,6 +196,7 @@ typedef struct diaXml_nodeFunction {
 //per29.229, CER/CEA shall include auth-app-id in vendor-specific-application-id with vendor-id=3GPP, and application-id=3GPP-CX(16777216) 
 
 void diaConfig_init(char* diaConfigFolder);
+void* diaConfig_getConfig(diaConfig_xmlDataName_e dataName);
 void diaConfig_getHostRealm(diaRealmHost_t* pRealmHost);
 bool diaConfig_isServer();
 void diaConfig_getHost(osPointerLen_t* host, int* port);
