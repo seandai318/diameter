@@ -227,9 +227,9 @@ osStatus_e diaCxUar_getServerCap(diaMsgDecoded_t* pMsgDecoded, diaCxServerCap_t*
         goto EXIT;
     }
 
-	osListPlus_init(&pServerCap->manCap);
-	osListPlus_init(&pServerCap->optCap);
-	osListPlus_init(&pServerCap->serverName);
+	osListPlus_init(&pServerCap->manCap, false);
+	osListPlus_init(&pServerCap->optCap, false);
+	osListPlus_init(&pServerCap->serverName, false);
 
 	uint32_t avpCode = DIA_AVP_CODE_CX_SERVER_CAPABILITY;
 	osListElement_t* pLE = osList_lookup(&pMsgDecoded->avpList, true, diaListFindAvp, &avpCode);

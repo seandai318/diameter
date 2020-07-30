@@ -150,7 +150,7 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 				pBuf = diaBuildCea(resultCode, pHostIpList, vendorId, productName, pSupportedVendorId, pAuthAppId, pAcctAppId, pVendorSpecificAppId, isFWRevExist ? &firmwareRev : NULL, NULL, &pDcb->cmdHdrInfo);
 			}
 
-			osfree(pHostIpList);		//to-do, this is to be enhanced, via osVList_free.
+			osListPlus_free(pHostIpList);
 			osVPL_free(productName);
 			osList_free(pSupportedVendorId);
 			osList_free(pAuthAppId);

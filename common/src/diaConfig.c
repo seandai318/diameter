@@ -273,11 +273,12 @@ osList_t* diaConfig_getSupportedVendorId(diaIntfType_e intfType, osList_t* pSupp
         }
     }
 
-	uint32_t* pVendorId = osmalloc(sizeof(uint32_t)*2, NULL);
-	pVendorId[0] = DIA_VENDOR_ID_3GPP;
-	pVendorId[1] = DIA_VENDOR_ID_ETSI;
-	osList_append(pSupportedVendorId, &pVendorId[0]);
-	osList_append(pSupportedVendorId, &pVendorId[1]);
+	uint32_t* pVendorId1 = osmalloc(sizeof(uint32_t), NULL);
+	uint32_t* pVendorId2 = osmalloc(sizeof(uint32_t), NULL);
+	*pVendorId1 = DIA_VENDOR_ID_3GPP;
+	*pVendorId2 = DIA_VENDOR_ID_ETSI;
+	osList_append(pSupportedVendorId, pVendorId1);
+	osList_append(pSupportedVendorId, pVendorId2);
 
 	return pSupportedVendorId;	
 }
