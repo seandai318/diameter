@@ -1,4 +1,4 @@
-PROJECT_DIR = /home/ama/project
+PROJECT_DIR = ${HOME}/project
 PROJECT_APP_DIR = $(PROJECT_DIR)/diameter
 IDIR = ../include $(PROJECT_DIR)/os/include $(PROJECT_APP_DIR)/common/include $(PROJECT_APP_DIR)/diaBase/include $(PROJECT_APP_DIR)/diaCx/include
 #INC=$(foreach d, $(IDIR), -I$d)
