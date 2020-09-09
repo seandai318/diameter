@@ -28,27 +28,27 @@ typedef struct {
 
 //the order must be sorted based on the data name length.  for the data name with the same len, their orders do not matter
 diaConfig_xmlData_t diaConfig_xmlData[DIA_XML_MAX_DATA_NAME_NUM] = {
-    {DIA_XML_DEST_HOST,         {"DIA_DEST_HOST", strlen("DIA_DEST_HOST")},             OS_XML_DATA_TYPE_XS_STRING, 0},
-    {DIA_XML_IS_SERVER,         {"DIA_IS_SERVER", strlen("DIA_IS_SERVER")},             OS_XML_DATA_TYPE_XS_BOOLEAN, false},
-    {DIA_XML_ORIG_HOST,         {"DIA_ORIG_HOST", strlen("DIA_ORIG_HOST")},             OS_XML_DATA_TYPE_XS_STRING, 0},
-    {DIA_XML_DEST_REALM,        {"DIA_DEST_REALM", strlen("DIA_DEST_REALM")},           OS_XML_DATA_TYPE_XS_STRING, 0},
-    {DIA_XML_ORIG_REALM,        {"DIA_ORIG_REALM", strlen("DIA_ORIG_REALM")},           OS_XML_DATA_TYPE_XS_STRING, 0},
-    {DIA_XML_PRODUCT_NAME,      {"DIA_PRODUCT_NAME", strlen("DIA_PRODUCT_NAME")},       OS_XML_DATA_TYPE_XS_STRING, 0},
-    {DIA_XML_CONFIG_PEER_IP,    {"DIA_CONFIG_PEER_IP", strlen("DIA_CONFIG_PEER_IP")},       OS_XML_DATA_TYPE_XS_STRING, 0},
-    {DIA_XML_CONFIG_LOCAL_IP,   {"DIA_CONFIG_LOCAL_IP", strlen("DIA_CONFIG_LOCAL_IP")},     OS_XML_DATA_TYPE_XS_STRING, 0},
-    {DIA_XML_MAX_HOST_IP_NUM,   {"DIA_MAX_HOST_IP_NUM", strlen("DIA_MAX_HOST_IP_NUM")},     OS_XML_DATA_TYPE_XS_SHORT,  1},
-    {DIA_XML_CONFIG_PEER_PORT,  {"DIA_CONFIG_PEER_PORT", strlen("DIA_CONFIG_PEER_PORT")},   OS_XML_DATA_TYPE_XS_SHORT, 0},
-    {DIA_XML_MAX_SAME_AVP_NUM,  {"DIA_MAX_SAME_AVP_NUM", strlen("DIA_MAX_SAME_AVP_NUM")},   OS_XML_DATA_TYPE_XS_SHORT, 5},
-    {DIA_XML_FIRMWARE_REVISION, {"DIA_FIRMWARE_REVISION", strlen("DIA_FIRMWARE_REVISION")}, OS_XML_DATA_TYPE_XS_SHORT, 0},
-    {DIA_XML_MAX_INTERFACE_NUM, {"DIA_MAX_INTERFACE_NUM", strlen("DIA_MAX_INTERFACE_NUM")}, OS_XML_DATA_TYPE_XS_SHORT, 5},
-    {DIA_XML_CONFIG_LISTEN_PORT,        {"DIA_CONFIG_LISTEN_PORT", strlen("DIA_CONFIG_LISTEN_PORT")},       OS_XML_DATA_TYPE_XS_SHORT, 0},
-    {DIA_XML_CONN_TIMER_WATCHDOG,       {"DIA_CONN_TIMER_WATCHDOG", strlen("DIA_CONN_TIMER_WATCHDOG")},     OS_XML_DATA_TYPE_XS_LONG, 0},
-    {DIA_XML_CONN_TIMER_WAIT_CONN,      {"DIA_CONN_TIMER_WAIT_CONN", strlen("DIA_CONN_TIMER_WAIT_CONN")},   OS_XML_DATA_TYPE_XS_LONG, 0},
-    {DIA_XML_CONN_TIMER_RETRY_CONN,     {"DIA_CONN_TIMER_RETRY_CONN", strlen("DIA_CONN_TIMER_RETRY_CONN")}, OS_XML_DATA_TYPE_XS_LONG, 0},
-    {DIA_XML_CONFIG_MAX_AVP_INSIDE_GRP_AVP,     {"DIA_CONFIG_MAX_AVP_INSIDE_GRP_AVP", strlen("DIA_CONFIG_MAX_AVP_INSIDE_GRP_AVP")},         OS_XML_DATA_TYPE_XS_SHORT, 10},
-    {DIA_XML_CONN_TIMER_TRANSMIT_WAIT_TIME,     {"DIA_CONN_TIMER_TRANSMIT_WAIT_TIME", strlen("DIA_CONN_TIMER_TRANSMIT_WAIT_TIME")},         OS_XML_DATA_TYPE_XS_LONG, 0},
-    {DIA_XML_CX_MAX_SERVER_CAPABILITY_ITEM,     {"DIA_CX_MAX_SERVER_CAPABILITY_ITEM", strlen("DIA_CX_MAX_SERVER_CAPABILITY_ITEM")},         OS_XML_DATA_TYPE_XS_SHORT, 10},
-    {DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE,  {"DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE", strlen("DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE")},   OS_XML_DATA_TYPE_XS_SHORT, 0}};
+    {DIA_XML_DEST_HOST,         {"DIA_DEST_HOST", sizeof("DIA_DEST_HOST")-1},             OS_XML_DATA_TYPE_XS_STRING, 0},
+    {DIA_XML_IS_SERVER,         {"DIA_IS_SERVER", sizeof("DIA_IS_SERVER")-1},             OS_XML_DATA_TYPE_XS_BOOLEAN, false},
+    {DIA_XML_ORIG_HOST,         {"DIA_ORIG_HOST", sizeof("DIA_ORIG_HOST")-1},             OS_XML_DATA_TYPE_XS_STRING, 0},
+    {DIA_XML_DEST_REALM,        {"DIA_DEST_REALM", sizeof("DIA_DEST_REALM")-1},           OS_XML_DATA_TYPE_XS_STRING, 0},
+    {DIA_XML_ORIG_REALM,        {"DIA_ORIG_REALM", sizeof("DIA_ORIG_REALM")-1},           OS_XML_DATA_TYPE_XS_STRING, 0},
+    {DIA_XML_PRODUCT_NAME,      {"DIA_PRODUCT_NAME", sizeof("DIA_PRODUCT_NAME")-1},       OS_XML_DATA_TYPE_XS_STRING, 0},
+    {DIA_XML_CONFIG_PEER_IP,    {"DIA_CONFIG_PEER_IP", sizeof("DIA_CONFIG_PEER_IP")-1},       OS_XML_DATA_TYPE_XS_STRING, 0},
+    {DIA_XML_CONFIG_LOCAL_IP,   {"DIA_CONFIG_LOCAL_IP", sizeof("DIA_CONFIG_LOCAL_IP")-1},     OS_XML_DATA_TYPE_XS_STRING, 0},
+    {DIA_XML_MAX_HOST_IP_NUM,   {"DIA_MAX_HOST_IP_NUM", sizeof("DIA_MAX_HOST_IP_NUM")-1},     OS_XML_DATA_TYPE_XS_SHORT,  1},
+    {DIA_XML_CONFIG_PEER_PORT,  {"DIA_CONFIG_PEER_PORT", sizeof("DIA_CONFIG_PEER_PORT")-1},   OS_XML_DATA_TYPE_XS_SHORT, 0},
+    {DIA_XML_MAX_SAME_AVP_NUM,  {"DIA_MAX_SAME_AVP_NUM", sizeof("DIA_MAX_SAME_AVP_NUM")-1},   OS_XML_DATA_TYPE_XS_SHORT, 5},
+    {DIA_XML_FIRMWARE_REVISION, {"DIA_FIRMWARE_REVISION", sizeof("DIA_FIRMWARE_REVISION")-1}, OS_XML_DATA_TYPE_XS_SHORT, 0},
+    {DIA_XML_MAX_INTERFACE_NUM, {"DIA_MAX_INTERFACE_NUM", sizeof("DIA_MAX_INTERFACE_NUM")-1}, OS_XML_DATA_TYPE_XS_SHORT, 5},
+    {DIA_XML_CONFIG_LISTEN_PORT,        {"DIA_CONFIG_LISTEN_PORT", sizeof("DIA_CONFIG_LISTEN_PORT")-1},       OS_XML_DATA_TYPE_XS_SHORT, 0},
+    {DIA_XML_CONN_TIMER_WATCHDOG,       {"DIA_CONN_TIMER_WATCHDOG", sizeof("DIA_CONN_TIMER_WATCHDOG")-1},     OS_XML_DATA_TYPE_XS_LONG, 0},
+    {DIA_XML_CONN_TIMER_WAIT_CONN,      {"DIA_CONN_TIMER_WAIT_CONN", sizeof("DIA_CONN_TIMER_WAIT_CONN")-1},   OS_XML_DATA_TYPE_XS_LONG, 0},
+    {DIA_XML_CONN_TIMER_RETRY_CONN,     {"DIA_CONN_TIMER_RETRY_CONN", sizeof("DIA_CONN_TIMER_RETRY_CONN")-1}, OS_XML_DATA_TYPE_XS_LONG, 0},
+    {DIA_XML_CONFIG_MAX_AVP_INSIDE_GRP_AVP,     {"DIA_CONFIG_MAX_AVP_INSIDE_GRP_AVP", sizeof("DIA_CONFIG_MAX_AVP_INSIDE_GRP_AVP")-1},         OS_XML_DATA_TYPE_XS_SHORT, 10},
+    {DIA_XML_CONN_TIMER_TRANSMIT_WAIT_TIME,     {"DIA_CONN_TIMER_TRANSMIT_WAIT_TIME", sizeof("DIA_CONN_TIMER_TRANSMIT_WAIT_TIME")-1},         OS_XML_DATA_TYPE_XS_LONG, 0},
+    {DIA_XML_CX_MAX_SERVER_CAPABILITY_ITEM,     {"DIA_CX_MAX_SERVER_CAPABILITY_ITEM", sizeof("DIA_CX_MAX_SERVER_CAPABILITY_ITEM")-1},         OS_XML_DATA_TYPE_XS_SHORT, 10},
+    {DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE,  {"DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE", sizeof("DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE")-1},   OS_XML_DATA_TYPE_XS_SHORT, 0}};
 
 
 static osStatus_e diaConfig_getXmlConfig(char* configFolder, char* xsdFile, char* xmlFile);
@@ -152,10 +152,6 @@ void diaConfig_getHostRealm(diaRealmHost_t* pRealmHost)
 	osVPL_setPL(&pRealmHost->origRealm, diaConfig_getConfig(DIA_XML_ORIG_REALM), false);
 	osVPL_setPL(&pRealmHost->origHost, diaConfig_getConfig(DIA_XML_ORIG_HOST), false); 
 	osVPL_setPL(&pRealmHost->destRealm, diaConfig_getConfig(DIA_XML_DEST_REALM), false);
-
-//	osVPL_setStr(&pRealmHost->origRealm, DIA_ORIG_REALM, strlen(DIA_ORIG_REALM), false);  
-//	osVPL_setStr(&pRealmHost->origHost, DIA_ORIG_HOST, strlen(DIA_ORIG_HOST), false);
-//	osVPL_setStr(&pRealmHost->destRealm, DIA_DEST_REALM, strlen(DIA_DEST_REALM), false);
 } 
 
 
@@ -163,11 +159,6 @@ void diaConfig_getHost(osPointerLen_t* host, int* port)
 {
 	*host = *(osPointerLen_t*) diaConfig_getConfig(DIA_XML_CONFIG_LOCAL_IP);
 	*port = *(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_LISTEN_PORT);	
-#if 0
-    host->p = DIA_CONFIG_LOCAL_IP;
-    host->l = strlen(DIA_CONFIG_LOCAL_IP);
-    *port = DIA_CONFIG_LISTEN_PORT;
-#endif
 }
 
 
@@ -176,11 +167,6 @@ void diaConfig_getHost1(struct sockaddr_in* pHost)
     struct sockaddr_in saddr;
     osIpPort_t ipPort = {{*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_CONFIG_LOCAL_IP), false, false}, *(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_LISTEN_PORT)};
     osConvertPLton(&ipPort, true, pHost);
-#if 0
-    pHost->sin_family = AF_INET;
-    inet_pton(AF_INET, DIA_CONFIG_LOCAL_IP, &pHost->sin_addr);
-    pHost->sin_port = htons(DIA_CONFIG_LISTEN_PORT);
-#endif
 }
 
 
@@ -195,12 +181,6 @@ void diaConfig_getPeer(diaIntfType_e intfType, osIpPort_t* pPeer)
 	pPeer->ip.pl = *(osPointerLen_t*)diaConfig_getConfig(DIA_XML_CONFIG_PEER_IP);
     pPeer->ip.isPDynamic = false;
 	pPeer->port = *(uint64_t*)diaConfig_getConfig(DIA_XML_CONFIG_PEER_PORT);
-#if 0
-	pPeer->ip.pl.p = DIA_CONFIG_PEER_IP;
-	pPeer->ip.pl.l = strlen(DIA_CONFIG_PEER_IP);
-	pPeer->ip.isPDynamic = false;
-	pPeer->port = DIA_CONFIG_PEER_PORT;
-#endif
 	return;
 }
 
@@ -244,11 +224,6 @@ osVPointerLen_t* diaConfig_getProductName(diaIntfType_e intfType, osVPointerLen_
 
 	pProductName->pl = *(osPointerLen_t*)diaConfig_getConfig(DIA_XML_PRODUCT_NAME);
 	pProductName->isPDynamic = false;
-#if 0
-	pProductName->pl.p = DIA_PRODUCT_NAME;
-	pProductName->pl.l = strlen(DIA_PRODUCT_NAME);
-	pProductName->isPDynamic = false;
-#endif
 
 	return pProductName;
 }
