@@ -8,7 +8,7 @@
 #include "osPL.h"
 #include "osList.h"
 #include "osTypes.h"
-#include "osXmlParser.h"
+#include "osXmlParserIntf.h"
 
 #include "diaMsg.h"
 #include "diaIntf.h"

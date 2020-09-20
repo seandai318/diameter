@@ -7,13 +7,14 @@
 #include "osTypes.h"
 #include "osSockAddr.h"
 #include "osMBuf.h"
-#include "osXmlParser.h"
+#include "osXmlParserIntf.h"
 
 #include "diaConfig.h"
 #include "diaMsg.h"
 #include "diaAvp.h"
 
 
+#if 0
 typedef struct {
     diaConfig_xmlDataName_e eDataName;
     osPointerLen_t dataName;
@@ -24,10 +25,11 @@ typedef struct {
         osPointerLen_t xmlStr;
     };
 } diaConfig_xmlData_t;
+#endif
 
 
 //the order must be sorted based on the data name length.  for the data name with the same len, their orders do not matter
-diaConfig_xmlData_t diaConfig_xmlData[DIA_XML_MAX_DATA_NAME_NUM] = {
+osXmlData_t diaConfig_xmlData[DIA_XML_MAX_DATA_NAME_NUM] = {
     {DIA_XML_DEST_HOST,         {"DIA_DEST_HOST", sizeof("DIA_DEST_HOST")-1},             OS_XML_DATA_TYPE_XS_STRING, 0},
     {DIA_XML_IS_SERVER,         {"DIA_IS_SERVER", sizeof("DIA_IS_SERVER")-1},             OS_XML_DATA_TYPE_XS_BOOLEAN, false},
     {DIA_XML_ORIG_HOST,         {"DIA_ORIG_HOST", sizeof("DIA_ORIG_HOST")-1},             OS_XML_DATA_TYPE_XS_STRING, 0},
@@ -51,8 +53,10 @@ diaConfig_xmlData_t diaConfig_xmlData[DIA_XML_MAX_DATA_NAME_NUM] = {
     {DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE,  {"DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE", sizeof("DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE")-1},   OS_XML_DATA_TYPE_XS_SHORT, 0}};
 
 
+#if 0
 static osStatus_e diaConfig_getXmlConfig(char* configFolder, char* xsdFile, char* xmlFile);
 static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t* value, osXmlDataType_e dataType, osXmlDataCallbackInfo_t* cbInfo);
+#endif
 
 //static osVPointerLen_t gPlDiaHostIp[DIA_MAX_HOST_IP_NUM];
 static osVPointerLen_t* gPlDiaHostIp = NULL;
@@ -61,11 +65,12 @@ static uint32_t diaHostNum;
 
 void diaConfig_init(char* configFolder)
 {
-	if(diaConfig_getXmlConfig(configFolder, DIA_CONFIG_XSD_FILE_NAME, DIA_CONFIG_XML_FILE_NAME) != OS_STATUS_OK)
-	{
-		logError("fails to diaConfig_getXmlConfig.");
-		return;
-	}
+	osXmlDataCallbackInfo_t cbInfo={diaConfig_xmlData, DIA_XML_MAX_DATA_NAME_NUM};
+    if(osXml_getLeafValue(configFolder, DIA_CONFIG_XSD_FILE_NAME, DIA_CONFIG_XML_FILE_NAME, true, &cbInfo) != OS_STATUS_OK)
+    {
+        logError("fails to sipConfig_getXmlConfig.");
+        return;
+    }
 
 	gPlDiaHostIp = oszalloc(sizeof(osVPointerLen_t)* *(uint64_t*)diaConfig_getConfig(DIA_MAX_HOST_IP_NUM), NULL);
 	if(!gPlDiaHostIp)
@@ -368,6 +373,7 @@ bool diaConfig_getFirmwareRev(uint32_t* pFWRev)
 }
 
 
+#if 0
 osStatus_e diaConfig_getXmlConfig(char* configFolder, char* xsdFile, char* xmlFile)
 {
 	osStatus_e status = OS_STATUS_OK;
@@ -495,5 +501,5 @@ static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t
 	return status;
 }
 
-			
+#endif			
 	
