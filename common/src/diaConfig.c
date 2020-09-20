@@ -477,7 +477,7 @@ static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t
     			case OS_XML_DATA_TYPE_XS_SHORT:
     			case OS_XML_DATA_TYPE_XS_INTEGER:
     			case OS_XML_DATA_TYPE_XS_LONG:
-                    status = osPL_convertStr2u64(value, &diaConfig_xmlData[i].xmlInt);
+                    status = osPL_convertStr2u64(value, &diaConfig_xmlData[i].xmlInt, NULL);
                     if(status != OS_STATUS_OK)
                     {
                     	logError("falis to convert element(%r) value(%r).", elemName, value);
