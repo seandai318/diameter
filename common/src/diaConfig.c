@@ -1,6 +1,7 @@
 #include "string.h"
 #include <arpa/inet.h>
 #include <endian.h>
+#include <stdlib.h>
 
 #include "osPL.h"
 #include "osMemory.h"
@@ -14,18 +15,6 @@
 #include "diaAvp.h"
 
 
-#if 0
-typedef struct {
-    diaConfig_xmlDataName_e eDataName;
-    osPointerLen_t dataName;
-    osXmlDataType_e dataType;
-    union {
-        bool xmlIsTrue;
-        uint64_t xmlInt;
-        osPointerLen_t xmlStr;
-    };
-} diaConfig_xmlData_t;
-#endif
 
 
 //the order must be sorted based on the data name length.  for the data name with the same len, their orders do not matter
@@ -53,10 +42,6 @@ osXmlData_t diaConfig_xmlData[DIA_XML_MAX_DATA_NAME_NUM] = {
     {DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE,  {"DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE", sizeof("DIA_CONFIG_TRANSPORT_TCP_BUFFER_SIZE")-1},   OS_XML_DATA_TYPE_XS_SHORT, 0}};
 
 
-#if 0
-static osStatus_e diaConfig_getXmlConfig(char* configFolder, char* xsdFile, char* xmlFile);
-static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t* value, osXmlDataType_e dataType, osXmlDataCallbackInfo_t* cbInfo);
-#endif
 
 //static osVPointerLen_t gPlDiaHostIp[DIA_MAX_HOST_IP_NUM];
 static osVPointerLen_t* gPlDiaHostIp = NULL;
@@ -68,7 +53,8 @@ void diaConfig_init(char* configFolder)
 	osXmlDataCallbackInfo_t cbInfo={diaConfig_xmlData, DIA_XML_MAX_DATA_NAME_NUM};
     if(osXml_getLeafValue(configFolder, DIA_CONFIG_XSD_FILE_NAME, DIA_CONFIG_XML_FILE_NAME, true, &cbInfo) != OS_STATUS_OK)
     {
-        logError("fails to sipConfig_getXmlConfig.");
+        logError("fails to diaConfig_getXmlConfig.");
+		exit(EXIT_FAILURE);
         return;
     }
 
@@ -371,135 +357,3 @@ bool diaConfig_getFirmwareRev(uint32_t* pFWRev)
 	*pFWRev = DIA_FIRMWARE_REVISION;
 	return true;
 }
-
-
-#if 0
-osStatus_e diaConfig_getXmlConfig(char* configFolder, char* xsdFile, char* xmlFile)
-{
-	osStatus_e status = OS_STATUS_OK;
-	osMBuf_t* xsdMBuf = NULL;
-	osMBuf_t* xmlBuf = NULL;
-	osXsdElement_t* pXsdRoot = NULL;
-
-	if(!xsdFile || !xmlFile)
-	{
-		logError("null pointer, xsdFile=%p, xmlFile=%p.", xsdFile, xmlFile);
-		status = OS_ERROR_NULL_POINTER;
-		goto EXIT;
-	}
-	
-    char diaConfigXsdFile[DIA_CONFIG_MAX_FILE_NAME_SIZE];
-    char diaConfigXmlFile[DIA_CONFIG_MAX_FILE_NAME_SIZE];
-
-    if(snprintf(diaConfigXsdFile, DIA_CONFIG_MAX_FILE_NAME_SIZE, "%s/%s", configFolder ? configFolder : ".", xsdFile) >= DIA_CONFIG_MAX_FILE_NAME_SIZE)
-    {
-        logError("diaConfigXsdFile name is truncated.");
-        status = OS_ERROR_INVALID_VALUE;
-    }
-
-    if(snprintf(diaConfigXmlFile, DIA_CONFIG_MAX_FILE_NAME_SIZE, "%s/%s", configFolder ? configFolder : ".", xmlFile) >= DIA_CONFIG_MAX_FILE_NAME_SIZE)
-    {
-        logError("diaConfigXmlFile name is truncated.");
-        status = OS_ERROR_INVALID_VALUE;
-        goto EXIT;
-    }
-
-    xsdMBuf = osMBuf_readFile(diaConfigXsdFile, 8000);
-    if(!xsdMBuf)
-    {
-        logError("read xsdMBuf fails.");
-        status = OS_ERROR_INVALID_VALUE;
-        goto EXIT;
-    }
-
-    pXsdRoot = osXsd_parse(xsdMBuf);
-    if(!pXsdRoot)
-    {
-        logError("fails to osXsd_parse for xsdMBuf.");
-        status = OS_ERROR_INVALID_VALUE;
-        goto EXIT;
-    }
-
-    xmlBuf = osMBuf_readFile(diaConfigXmlFile, 8000);
-    if(!xmlBuf)
-    {
-        logError("read xmlBuf fails.");
-        status = OS_ERROR_INVALID_VALUE;
-        goto EXIT;
-    }
-
-    osXml_parse(xmlBuf, pXsdRoot, diaConfig_xmlCallback, NULL);
-
-EXIT:
-	osfree(pXsdRoot);
-	if(status != OS_STATUS_OK)
-	{
-		osMBuf_dealloc(xsdMBuf);
-		osMBuf_dealloc(xmlBuf);
-	}
-
-	return status;
-}
-
-
-static osStatus_e diaConfig_xmlCallback(osPointerLen_t* elemName, osPointerLen_t* value, osXmlDataType_e dataType, osXmlDataCallbackInfo_t* cbInfo)
-{
-	osStatus_e status = OS_STATUS_OK;
-
-	if(!elemName || !value)
-	{
-		logError("null pointer, elemName=%p, value=%p", elemName, value);
-		return OS_ERROR_NULL_POINTER;;
-	}
-
-	for(int i=0; i<DIA_XML_MAX_DATA_NAME_NUM; i++)
-	{
-		if(elemName->l < diaConfig_xmlData[i].dataName.l)
-		{
-			debug("diaConfig does not need element(%r), ignore.", elemName);
-			return status;
-		}
-
-		if(osPL_cmp(elemName, &diaConfig_xmlData[i].dataName) == 0)
-		{
-			if(dataType != diaConfig_xmlData[i].dataType)
-			{
-				logError("the element(%r) data type=%d, but the diaConfig expects data type=%d", elemName, dataType, diaConfig_xmlData[i].dataType);
-				return OS_ERROR_INVALID_VALUE;
-			}
-		
-			switch (dataType)
-			{
-				case OS_XML_DATA_TYPE_XS_BOOLEAN:
-					diaConfig_xmlData[i].xmlIsTrue = strncmp("true", value->p, value->l) == 0 ? true : false;
-					logInfo("diaConfig_xmlData[%d].dataName = %r, value=%s", i, elemName, diaConfig_xmlData[i].xmlIsTrue ? "true" : "false"); 	
-					break; 
-    			case OS_XML_DATA_TYPE_XS_SHORT:
-    			case OS_XML_DATA_TYPE_XS_INTEGER:
-    			case OS_XML_DATA_TYPE_XS_LONG:
-                    status = osPL_convertStr2u64(value, &diaConfig_xmlData[i].xmlInt, NULL);
-                    if(status != OS_STATUS_OK)
-                    {
-                    	logError("falis to convert element(%r) value(%r).", elemName, value);
-                        return OS_ERROR_INVALID_VALUE;
-                    }
-                    logInfo("diaConfig_xmlData[%d].dataName = %r, value=%ld", i, elemName, diaConfig_xmlData[i].xmlInt);
-					break;
-    			case OS_XML_DATA_TYPE_XS_STRING:
-					diaConfig_xmlData[i].xmlStr = *value;
-                    logInfo("diaConfig_xmlData[%d].dataName =%r, value= %r", i, elemName, &diaConfig_xmlData[i].xmlStr);
-					break;
-				default:
-					logError("unexpected data type(%d) for element(%r).", dataType, elemName);
-					return OS_ERROR_INVALID_VALUE;
-					break;
-			}
-			return status;
-		}
-	}
-
-	return status;
-}
-
-#endif			
-	
