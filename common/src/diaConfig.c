@@ -50,7 +50,7 @@ static uint32_t diaHostNum;
 
 void diaConfig_init(char* configFolder)
 {
-	osXmlDataCallbackInfo_t cbInfo={true, NULL, diaConfig_xmlData, DIA_XML_MAX_DATA_NAME_NUM};
+	osXmlDataCallbackInfo_t cbInfo={true, true, NULL, diaConfig_xmlData, DIA_XML_MAX_DATA_NAME_NUM};
     if(osXml_getLeafValue(configFolder, DIA_CONFIG_XSD_FILE_NAME, DIA_CONFIG_XML_FILE_NAME, &cbInfo) != OS_STATUS_OK)
     {
         logError("fails to diaConfig_getXmlConfig.");
