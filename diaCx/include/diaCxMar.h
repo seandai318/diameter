@@ -21,8 +21,8 @@ typedef enum {
 
 
 typedef union {
-    osVPointerLen_t sipAuthContext_noAka;
-    osVPointerLen_t sipAuthorization_onlyAka;
+    osVPointerLen_t sipAuthContext_noAka;		//3gpp29.228, table 6.3.2, authentication Context (see 7.9.7) 
+    osVPointerLen_t sipAuthorization_onlyAka;	//3gpp29.228, table 6.3.2, Authorization Information (see 7.9.4)
 } diaCxMar_ReqAuthData_u;
 
 typedef struct diaCxMar_authAka {

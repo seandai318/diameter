@@ -114,6 +114,12 @@ uint32_t diaGetOrigStateId()
 }
 
 
+#if 1	//to-remove, uar test
+extern osMBuf_t* testDiaUar();
+extern osMBuf_t* testDiaMar();
+static bool isFirst = true;
+#endif
+
 osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmdCode_e cmd, bool isReq, diaResultCode_e resultCode) 
 {
 	DEBUG_BEGIN
@@ -185,6 +191,34 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 		status = OS_ERROR_NETWORK_FAILURE;
 	}
 
+#if 1	//to-remove, for testing
+	if(cmd == DIA_CMD_CODE_DWR && isFirst)
+	{
+		isFirst = false;
+debug("to-remove, send UAR");
+		pBuf = testDiaUar();
+		tpStatus = transport_send(TRANSPORT_APP_TYPE_DIAMETER, pDcb, &pDcb->tpInfo, pBuf, NULL);
+    	osMBuf_dealloc(pBuf);
+
+    	if(tpStatus == TRANSPORT_STATUS_TCP_FAIL || tpStatus == TRANSPORT_STATUS_FAIL)
+    	{
+        	//take no further action, expect transport to send a seperate notify message
+        	logInfo("fails to transport_send(%d) for uar.", tpStatus);
+        	status = OS_ERROR_NETWORK_FAILURE;
+    	}
+
+debug("to-remove, send MAR");		
+        pBuf = testDiaMar();
+        tpStatus = transport_send(TRANSPORT_APP_TYPE_DIAMETER, pDcb, &pDcb->tpInfo, pBuf, NULL);
+        osMBuf_dealloc(pBuf);
+
+        if(tpStatus == TRANSPORT_STATUS_TCP_FAIL || tpStatus == TRANSPORT_STATUS_FAIL)
+        {
+            logInfo("fails to transport_send(%d) for mar.", tpStatus);
+            status = OS_ERROR_NETWORK_FAILURE;
+        }
+	}
+#endif
 EXIT:
 	DEBUG_END
 	return status;

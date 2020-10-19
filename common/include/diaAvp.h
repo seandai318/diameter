@@ -98,7 +98,8 @@ typedef struct diaAvp_vendorSpecificAppIdParam {
 
 
 typedef struct diaAvp_sessionIdParam {
-	char* pHostName;
+//	char* pHostName;
+	osPointerLen_t* pHostName;
 	osVPointerLen_t* pSessId;
 } diaAvp_sessionIdParam_t;
 

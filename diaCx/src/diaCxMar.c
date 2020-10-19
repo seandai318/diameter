@@ -52,7 +52,7 @@ osMBuf_t* diaCxMar_encode(diaCxMarParam_t* pMarParam, diaHdrSessInfo_t* pHdrSess
 	//session-id
 	diaAvp_sessionIdParam_t sessIdData;
     sessIdData.pSessId = &pHdrSessInfo->sessionId;
-    sessIdData.pHostName = (void*)pMarParam->realmHost.origHost.pl.p;
+    sessIdData.pHostName = &pMarParam->realmHost.origHost.pl;
     diaEncodeAvp_t avpSessId = {DIA_AVP_CODE_SESSION_ID, (diaEncodeAvpData_u)((void*) &sessIdData), diaAvp_encodeSessionId};
     osList_append(&marAvpList, &avpSessId);
 

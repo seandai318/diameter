@@ -48,9 +48,9 @@ osMBuf_t* diaCxUar_encode(diaCxUarParam_t* pUarParam, diaHdrSessInfo_t* pHdrSess
 
 	osList_t uarAvpList = {};		//each element contains diaEncodeAvp_t
 	//session-id
-	diaAvp_sessionIdParam_t sessIdData;
+	diaAvp_sessionIdParam_t sessIdData = {};
 	sessIdData.pSessId = &pHdrSessInfo->sessionId;	
-    sessIdData.pHostName = (void*)pUarParam->realmHost.origHost.pl.p;
+    sessIdData.pHostName = &pUarParam->realmHost.origHost.pl;
     diaEncodeAvp_t avpSessId = {DIA_AVP_CODE_SESSION_ID, (diaEncodeAvpData_u)((void*) &sessIdData), diaAvp_encodeSessionId};
     osList_append(&uarAvpList, &avpSessId);
 
@@ -380,7 +380,7 @@ osMBuf_t* diaCxUaa_encode(diaCxUaaParam_t* pUaaParam, diaHdrSessInfo_t* pHdrSess
     osList_t uaaAvpList = {};       //each element contains diaEncodeAvp_t
     //session-id
     diaAvp_sessionIdParam_t sessIdData;
-    sessIdData.pHostName = (void*)pUaaParam->realmHost.origHost.pl.p;
+    sessIdData.pHostName = &pUaaParam->realmHost.origHost.pl;
     diaEncodeAvp_t avpSessId = {DIA_AVP_CODE_SESSION_ID, (diaEncodeAvpData_u)&pHdrSessInfo->sessionId, NULL};
     osList_append(&uaaAvpList, &avpSessId);
 

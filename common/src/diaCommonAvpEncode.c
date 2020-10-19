@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "osMemory.h"
+#include "osPrintf.h"
 
 #include "diaMsg.h"
 #include "diaAvp.h"
@@ -30,7 +31,7 @@ osStatus_e diaAvp_encodeSessionId(osMBuf_t* pDiaBuf, void* pData)
     }
 
 	diaAvp_sessionIdParam_t* pSessData = pData;
-	char* pHostName = pSessData->pHostName;
+	osPointerLen_t* pHostName = pSessData->pHostName;
 	if(!pHostName)
 	{
         logError("null pointer, pHostName.");
@@ -47,11 +48,11 @@ osStatus_e diaAvp_encodeSessionId(osMBuf_t* pDiaBuf, void* pData)
 	pthread_mutex_lock(&ovMutex);
 	value = optionalValue++;
 	pthread_mutex_unlock(&ovMutex);
-	uint32_t len = snprintf(sessIdBuf, DIA_MAX_SESSION_ID_LEN, "%s;%lu;%lu;%u", pHostName, tp.tv_sec, tp.tv_nsec, optionalValue);
+	uint32_t len = osPrintf_buffer(sessIdBuf, DIA_MAX_SESSION_ID_LEN, "%r;%lu;%lu;%u", pHostName, tp.tv_sec, tp.tv_nsec, optionalValue);
 
 	if(len >= DIA_MAX_SESSION_ID_LEN)
 	{
-		logError("dia_session_id exceeds maximum size(%d).", DIA_MAX_SESSION_ID_LEN);
+		logError("dia_session_id exceeds maximum size(%d), session_id=%r;%lu;%lu;%u.", DIA_MAX_SESSION_ID_LEN, pHostName, tp.tv_sec, tp.tv_nsec, optionalValue);
 		osfree(sessIdBuf);
 		status = OS_ERROR_INVALID_VALUE;
         goto EXIT;
