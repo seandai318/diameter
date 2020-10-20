@@ -203,6 +203,7 @@ osMBuf_t* diaBuildMar(osVPointerLen_t* userName, osVPointerLen_t* pubId, diaCxMa
 	marParam.pubId = *pubId;
 	marParam.serverName = *serverName;
     marParam.authItem = 1;
+	marParam.authData = pAuthData;
 	if(pAuthData->sipAuthScheme == DIA_CX_AUTH_SCHEME_DIGEST_AKA)
 	{
 		marParam.authItem = pAuthData->authItem;
