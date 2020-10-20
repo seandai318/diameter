@@ -10,6 +10,8 @@
 #include "diaCxUar.h"
 #include "diaAvp.h"
 #include "diaCxMar.h"
+#include "diaCxSar.h"
+#include "diaCxAvp.h"
 
 
 #define CX_USER_NAME	"310970200005171"
@@ -54,4 +56,30 @@ osMBuf_t* testDiaMar()
 
     diaHdrSessInfo_t diaHdrSessInfo;
 	return diaBuildMar(&userName, &pubId, &authData, &serverName, &destHost, NULL, NULL, &diaHdrSessInfo);
-} 
+}
+
+
+
+osMBuf_t* testDiaSar()
+{
+    osVPointerLen_t userName = {{CX_USER_NAME, sizeof(CX_USER_NAME)-1}, false, false};
+    osVPointerLen_t pubId = {{PUB_ID, sizeof(PUB_ID)-1}, false, false};
+    osVPointerLen_t serverName = {{SERVER_NAME, sizeof(SERVER_NAME)-1}, false, false};
+    osVPointerLen_t destHost = {{HSS_NAME, sizeof(HSS_NAME)-1}, false, false};
+
+	diaCxSarInfo_t sarInfo;
+	sarInfo.serverAssignmentType = DIA_3GPP_CX_REGISTRATION;
+	sarInfo.userDataAvailable = DIA_3GPP_CX_USER_DATA_NOT_AVAILABLE;
+	sarInfo.multiRegInd = DIA_3GPP_CX_MULTI_REG_IND_NO_EXIST;
+	sarInfo.pRestorationInfo = NULL;
+
+	diaAvp_supportedFeature_t sf;
+    sf.fl[0].vendorId = DIA_AVP_VENDOR_3GPP;
+    sf.fl[0].featureListId = 1;
+    sf.fl[0].featureList = 1 << DIA_CX_FEATURE_LIST_ID_SIFC;
+    sf.flNum = 1;
+
+    diaHdrSessInfo_t diaHdrSessInfo;
+    return diaBuildSar(&userName, &pubId, &serverName, &destHost, &sarInfo, &sf, NULL, &diaHdrSessInfo);
+}
+ 

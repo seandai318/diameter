@@ -116,6 +116,14 @@ typedef enum {
 } diaAvpCxUserAuthType_e;
 
 
+typedef enum {
+	DIA_CX_FEATURE_LIST_ID_SIFC	= 0,
+	DIA_CX_FEATURE_LIST_ID_ALIAS_IND = 1,
+	DIA_CX_FEATURE_LIST_ID_IMS_RESTORATION_IND = 2,
+	DIA_CX_FEATURE_LIST_ID_PCSCF_RESTORATION_IND = 3,
+} diaAvpCxFeatureListId_e;
+
+
 diaDataType_e diaCxGetAvpInfo(diaAvpCxCode_e avpCode, uint8_t* avpFlag, diaAvpVendor_e* vendorId);
 diaDataType_e diaCxGetReusedAvpInfo(diaAvpCxCode_e avpCode, uint8_t* pAvpFlag, diaAvpVendor_e* vendorId);
 
