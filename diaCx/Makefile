@@ -1,6 +1,6 @@
 PROJECT_DIR ?= ${HOME}/project
 PROJECT_APP_DIR = $(PROJECT_DIR)/diameter
-IDIR = ./include $(PROJECT_DIR)/os/include $(PROJECT_APP_DIR)/common/include $(PROJECT_DIR)/sip-stack/transport/include
+IDIR = $(PROJECT_APP_DIR)/diaCx/include $(PROJECT_DIR)/os/include $(PROJECT_APP_DIR)/common/include $(PROJECT_DIR)/sip-stack/transport/include
 #INC=$(foreach d, $(IDIR), -I$d)
 INC=$(IDIR:%=-I%)
 
