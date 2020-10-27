@@ -25,6 +25,7 @@ LDFLAGS = -lpthread
 
 libdiabase.a: $(obj)
 	$(AR) -cr $@ $^
+	make clean
 
 -include $(dep)   # include all dep files in the makefile
 

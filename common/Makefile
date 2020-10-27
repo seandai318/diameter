@@ -28,7 +28,7 @@ libdiacommon.a: $(obj)
 	cd $(OBJ_DIR);	$(AR) -cr $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	cd $(SRC_DIR); $(CC) $(CFLAGS) -c $(notdir $<) -o $@
 	
 -include $(dep)   # include all dep files in the makefile
 

@@ -30,7 +30,7 @@ libdiacx.a: $(obj)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	cd $(SRC_DIR); $(CC) $(CFLAGS) -c $(notdir $<) -o $@
 
 -include $(dep)   # include all dep files in the makefile
 
