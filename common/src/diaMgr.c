@@ -42,6 +42,7 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
         goto EXIT;
     }
 
+	//diaId is for the connection status.  For msg from peer, diaId will be 0  
     diaConnBlock_t* pDcb = pTpMsg->diaId ? pTpMsg->diaId : diaConnMgr_getDcb(&pTpMsg->peer);
     if(!pDcb)
     {
@@ -62,6 +63,7 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
             goto EXIT;
         }
 
+		logInfo("msg cmdCode=%d.", pDiaDecoded->cmdCode); 
 		switch(pDiaDecoded->cmdCode)
 		{
 			case DIA_CMD_CODE_CER:

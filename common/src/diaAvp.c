@@ -258,6 +258,10 @@ osStatus_e diaAvp_decode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t* avpCo
 	switch (pAvpData->dataType = diaGetAvpInfo(diaCmd, *avpCode, NULL, NULL))
 	{
 		case DIA_AVP_DATA_TYPE_OCTET_STRING:
+        case DIA_AVP_DATA_TYPE_UTF8_STRING:
+        case DIA_AVP_DATA_TYPE_IP_FILTER:
+        case DIA_AVP_DATA_TYPE_TIME:
+        case DIA_AVP_DATA_TYPE_DIAM_IDEN:
 			osVPL_set(&pAvpData->dataStr, &pDiaBuf->buf[pDiaBuf->pos], avpLen - (*avpCode & DIA_AVP_FLAG_VENDOR_SPECIFIC ? 12 : 8), false); 
 			break;
     	case DIA_AVP_DATA_TYPE_INT32:

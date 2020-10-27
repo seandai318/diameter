@@ -43,7 +43,7 @@ typedef enum {
 
 
 //to-do to refine when working on app/diam interface
-typedef void (*diaNotifyApp_h)();
+typedef void (*diaNotifyApp_h)(diaMsgDecoded_t* pDecoded);
 
 typedef struct diaConnBlock {
     diaConnState_e connState;
