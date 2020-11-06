@@ -10,7 +10,8 @@
 
 #include "diaMsg.h"
 #include "diaConnMgr.h"
-
+#include "diaIntf.h"
+ 
 
 typedef enum {
 	DIA_CONN_MSG_TYPE_NONE,
@@ -42,8 +43,6 @@ typedef enum {
 } diaConnState_e;
 
 
-//to-do to refine when working on app/diam interface
-typedef void (*diaNotifyApp_h)(diaMsgDecoded_t* pDecoded);
 
 typedef struct diaConnBlock {
     diaConnState_e connState;

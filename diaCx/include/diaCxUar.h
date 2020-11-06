@@ -47,7 +47,8 @@ typedef struct diaCxUaaParam {
 
 
 
-osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
+//osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
+osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, uint32_t featureList, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
 osMBuf_t* diaCxUar_encode(diaCxUarParam_t* pUarParam, diaHdrSessInfo_t* pHdrSessInfo);
 
 //pList contains extra optional AVPs

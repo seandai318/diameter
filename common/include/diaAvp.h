@@ -55,7 +55,7 @@ typedef struct diaAvpData {
 
 
 typedef struct diaAvp {
-    uint32_t avpCode;			//can be diaBaseAvpCode_e, or diaCxAvpCode_e, etc.
+    uint32_t avpCode;			//can be diaAvpBaseCode_e, or diaCxAvpCode_e, etc.
     uint8_t avpFlag;
     uint32_t vendorId;
     diaAvpData_t avpData;

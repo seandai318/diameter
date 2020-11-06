@@ -124,6 +124,7 @@ osStatus_e diaMsg_updateCmdFlagP(osMBuf_t* pDiaBuf, bool isSet);
 osStatus_e diaMsg_updateCmdFlagE(osMBuf_t* pDiaBuf, bool isSet);
 osStatus_e diaMsg_updateCmdFlagT(osMBuf_t* pDiaBuf, bool isSet);
 osStatus_e diaMsg_updateCmdFlag(osMBuf_t* pDiaBuf, uint8_t flag);
+osPointerLen_t* diaMsg_getSessId(diaMsgDecoded_t* pDecoded);
 
 
 

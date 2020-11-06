@@ -49,11 +49,13 @@ struct diaConnBlock;
 
 transportStatus_e diaConnMgr_startConn(struct diaConnBlock* pDcb);
 osStatus_e diaSendCommonMsg(diaIntfType_e intfType, struct diaConnBlock* pDcb, diaCmdCode_e cmd, bool isReq, diaResultCode_e resultCode);
+//osStatus_e diaSendAppMsg(diaIntfType_e intfType, osMBuf_t* pBuf);
 osStatus_e diaConnMgr_stopConn(struct diaConnBlock* pDcb);  //close the current connection
 osStatus_e diaconnMgr_notifyFailover(struct diaConnBlock* pDcb);
 osStatus_e diaconnMgr_notifyFailback(struct diaConnBlock* pDcb);
 osStatus_e diaConnMgr_onMsg(struct diaConnBlock* pDcb, diaTransportMsg_t* pTpMsg, diaMsgDecoded_t* pDiaDecoded);
 uint64_t diaStartTimer(time_t msec, struct diaConnBlock* pDcb);
+struct diaConnBlock* diaConnGetActiveDcbByIntf(diaIntfType_e intfType);
 struct diaConnBlock* diaConnMgr_getDcb(struct sockaddr_in* peer);
 osStatus_e diaConnMgr_init();
 

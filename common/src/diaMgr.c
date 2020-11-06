@@ -4,6 +4,8 @@
 
 #include "osHexDump.h"
 #include "osMemory.h"
+#include "osHash.h"
+#include "osTimer.h"
 
 #include "diaConfig.h"
 #include "diaTransportIntf.h"
@@ -17,7 +19,21 @@
 #define DIA_BASE_CER_ORIG_STATE_EPOCH_VALUE 0x5ea5cfa4      //1587924900
 
 
+typedef struct {	
+	void* appData;
+	diaNotifyApp_h appCallback;
+	uint64_t waitRespTimerId;
+	diaConnBlock_t* pDcb;
+} diaHashData_t;
+
+
+static void dia_onTimeout(uint64_t timerId, void* ptr);
+static void diaHashData_cleanup(void* data);
+
+static osHash_t* diaHash;
 static uint32_t diaOrigStateId;
+
+
 
 void dia_init(char* diaConfigFolder)
 {
@@ -26,6 +42,14 @@ void dia_init(char* diaConfigFolder)
     diaOrigStateId = tp.tv_sec - DIA_BASE_CER_ORIG_STATE_EPOCH_VALUE;
 
 	diaConfig_init(diaConfigFolder);
+
+	diaHash = osHash_create(DIA_HASH_SIZE);
+    if(!diaHash)
+    {
+        logError("fails to create diaHash.");
+        return;
+    }
+
 	diaConnMgr_init();
 }
 
@@ -71,12 +95,43 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
 			case DIA_CMD_CODE_DPR:
 				break;
 			default:
-				//to-do, notify appliction, appId is stored in pDcb
-				if(pDcb->diaNotifyApp)
+			{
+				//notify appliction, appId is stored in pDcb
+				if(pDiaDecoded->cmdFlag & DIA_CMD_FLAG_REQUEST)
 				{
-					pDcb->diaNotifyApp(pDiaDecoded);
+					pDcb->diaNotifyApp(pDiaDecoded, NULL);
+					break;
+				}
+				else
+				{
+					osPointerLen_t* pSessId = diaMsg_getSessId(pDiaDecoded);
+    				if(!pSessId)
+    				{
+        				logInfo("fails to get dia sessionId.");
+        				status = OS_ERROR_NETWORK_FAILURE;
+        				break;
+    				}
+	
+					osListElement_t* pHashLE = osPlHash_getElement(diaHash, pSessId, true);
+					if(!pHashLE)
+					{
+						logError("received a dia response for cmd(%d), but there is no associated request record, ignore.", pDiaDecoded->cmdCode);
+						goto EXIT;
+					}
+
+				    diaHashData_t* pDiaHashData = pHashLE->data;
+    				if(pDiaHashData->waitRespTimerId)
+					{
+						pDiaHashData->waitRespTimerId = osStopTimer(pDiaHashData->waitRespTimerId);
+					}
+
+					diaNotifyApp_h notifyApp = pDiaHashData->appCallback ? pDiaHashData->appCallback : pDcb->diaNotifyApp;
+					notifyApp(pDiaDecoded, pDiaHashData->appData);
+
+				    osHash_deleteNode(pHashLE, OS_HASH_DEL_NODE_TYPE_ALL);
 				}
 				break;
+			}
 		}
 	}
 
@@ -198,19 +253,20 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 	if(cmd == DIA_CMD_CODE_DWR && runNum <= 3)
 	{
 		runNum++;
-	if(runNum == 1)
-	{
+		if(runNum == 1)
+		{
 debug("to-remove, send UAR");
-		pBuf = testDiaUar();
-		tpStatus = transport_send(TRANSPORT_APP_TYPE_DIAMETER, pDcb, &pDcb->tpInfo, pBuf, NULL);
-    	osMBuf_dealloc(pBuf);
+			pBuf = testDiaUar();
+			tpStatus = transport_send(TRANSPORT_APP_TYPE_DIAMETER, pDcb, &pDcb->tpInfo, pBuf, NULL);
+    		osMBuf_dealloc(pBuf);
 
-    	if(tpStatus == TRANSPORT_STATUS_TCP_FAIL || tpStatus == TRANSPORT_STATUS_FAIL)
-    	{
-        	//take no further action, expect transport to send a seperate notify message
-        	logInfo("fails to transport_send(%d) for uar.", tpStatus);
-        	status = OS_ERROR_NETWORK_FAILURE;
-    	}
+    		if(tpStatus == TRANSPORT_STATUS_TCP_FAIL || tpStatus == TRANSPORT_STATUS_FAIL)
+    		{
+        		//take no further action, expect transport to send a seperate notify message
+        		logInfo("fails to transport_send(%d) for uar.", tpStatus);
+        		status = OS_ERROR_NETWORK_FAILURE;
+    		}
+		}
 	}
 
 	if(runNum == 2)
@@ -239,9 +295,83 @@ debug("to-remove, send SAR");
             status = OS_ERROR_NETWORK_FAILURE;
         }
     }
-	}
 #endif
 EXIT:
 	DEBUG_END
 	return status;
+}
+
+
+
+osStatus_e diaSendAppMsg(diaIntfType_e intfType, osMBuf_t* pMBuf, osPointerLen_t* pSessId, diaNotifyApp_h appCallback, void* appData)
+{
+	osStatus_e status = OS_STATUS_OK;
+	diaConnBlock_t* pDcb = diaConnGetActiveDcbByIntf(intfType);
+	if(!pDcb)
+	{
+		logError("noa ctive diameter connection exists for intfType(%d).", intfType);
+		status = OS_ERROR_SYSTEM_FAILURE;
+		goto EXIT;
+	}
+
+	transportStatus_e tpStatus = transport_send(TRANSPORT_APP_TYPE_DIAMETER, pDcb, &pDcb->tpInfo, pMBuf, NULL);
+    if(tpStatus != TRANSPORT_STATUS_TCP_OK)
+    {
+        logInfo("fails to transport_send for intfType(%d), tpStatus=%d.", intfType, tpStatus);
+        status = OS_ERROR_NETWORK_FAILURE;
+		goto EXIT;
+    }
+
+	//if pSessId != NULL, indicates it is a request and needs to be hashed for response, otherwise, the appMsg is a response, no need to be hashed
+	if(pSessId)
+	{
+		diaHashData_t* pDiaHashData = osmalloc(sizeof(diaHashData_t), diaHashData_cleanup);
+		pDiaHashData->appData = appData;
+		pDiaHashData->appCallback = appCallback;
+		pDiaHashData->pDcb = osmemref(pDcb);
+		osListElement_t* pHashLE = osPlHash_addUserData(diaHash, pSessId, true, pDiaHashData);
+		pDiaHashData->waitRespTimerId = osStartTimer(DIA_REQ_WAIT_RESP_DEFAULT_TIME, dia_onTimeout, pHashLE);
+	}	
+
+EXIT:
+	return status;
+}
+
+
+static void dia_onTimeout(uint64_t timerId, void* ptr)
+{
+	if(!ptr)
+	{
+		logError("null pointer, ptr.");
+		return;
+	}
+
+	diaHashData_t* pDiaHashData = ((osListElement_t*)ptr)->data;
+	if(timerId != pDiaHashData->waitRespTimerId)
+	{
+		logError("received timeout id(%ld) does not match with received(%ld).", timerId, pDiaHashData->waitRespTimerId);
+		return;
+	}
+
+	diaNotifyApp_h notifyApp = pDiaHashData->appCallback ? pDiaHashData->appCallback : pDiaHashData->pDcb->diaNotifyApp;
+	if(!notifyApp)
+	{
+		logError("notifyApp is empty.");
+		return;
+	}
+
+	notifyApp(NULL, pDiaHashData->appData);
+
+    osHash_deleteNode(ptr, OS_HASH_DEL_NODE_TYPE_ALL);
+}
+
+
+static void diaHashData_cleanup(void* data)
+{
+	if(!data)
+	{
+		return;
+	}
+
+	osfree(((diaHashData_t*)data)->pDcb);
 }

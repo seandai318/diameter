@@ -98,8 +98,11 @@ osMBuf_t* diaCxSar_encode(diaCxSarParam_t* pSarParam, diaHdrSessInfo_t* pHdrSess
 	osList_append(&sarAvpList, &avpDestRealm);
 
 	//user-name
-	diaEncodeAvp_t avpUserName = {DIA_AVP_CODE_USER_NAME, (diaEncodeAvpData_u)&pSarParam->userName, NULL};
-	osList_append(&sarAvpList, &avpUserName);
+	if(osPL_isset(&pSarParam->userName.pl))
+	{
+		diaEncodeAvp_t avpUserName = {DIA_AVP_CODE_USER_NAME, (diaEncodeAvpData_u)&pSarParam->userName, NULL};
+		osList_append(&sarAvpList, &avpUserName);
+	}
 
 	//OC-Supported-features
 	pOptAvp = diaOptListFindAndRemoveAvp(pSarParam->pExtraOptAvpList, DIA_AVP_CODE_CX_OC_SUPPORTED_FEATURES);
@@ -211,9 +214,9 @@ EXIT:
 osMBuf_t* diaBuildSar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* serverName, osVPointerLen_t* pDestHost, diaCxSarInfo_t* pSarInfo, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
 {
 
-	if(!userName || !pubId || !serverName || !pSarInfo)
+	if(!pubId || !serverName || !pSarInfo)
 	{
-		logError("null pointer for mandatory parameters, userName=%p, pubId=%p, serverName=%p, pSarInfo=%p.", userName, pubId, serverName, pSarInfo);
+		logError("null pointer for mandatory parameters, pubId=%p, serverName=%p, pSarInfo=%p.", pubId, serverName, pSarInfo);
 		return NULL;
 	}
 
@@ -226,7 +229,10 @@ osMBuf_t* diaBuildSar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPoin
 		osList_append(&sarParam.optAvpList, &destHost);
 	}
 
-	sarParam.userName = *userName;
+	if(userName)
+	{
+		sarParam.userName = *userName;
+	}
 	sarParam.pubId = *pubId;
 	sarParam.serverName = *serverName;
 

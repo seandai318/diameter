@@ -277,7 +277,8 @@ EXIT:
 
 
 //pList contains extra optional AVPs
-osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
+//osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
+osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, uint32_t featureList, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
 {
 
 	if(!userName || !pubId || !visitedNWId || !pHdrSessInfo)
@@ -299,8 +300,16 @@ osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPoin
 	uarParam.pubId = *pubId;
 	uarParam.visitedNetwork = *visitedNWId;
 
-	if(pSF)
+	diaAvp_supportedFeature_t sf;
+    diaEncodeAvp_t sfavp = {DIA_AVP_CODE_CX_SUPPORTED_FEATURE, (diaEncodeAvpData_u)(void*)&sf, diaAvp_encodeSupportedFeature};
+
+	if(featureList)
 	{
+	    sf.fl[0].vendorId = DIA_AVP_VENDOR_3GPP;
+    	sf.fl[0].featureListId = 1;
+    	sf.fl[0].featureList = featureList;
+    	sf.flNum = 1;
+
 #if 1
 #if 0
 		diaAvp_supportedFeature_t sfData;
@@ -312,9 +321,9 @@ osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPoin
     	sf.fl[1].featureListId = 2;
     	sf.fl[1].featureList = 0x3000;
 #endif
-		diaEncodeAvp_t sf = {DIA_AVP_CODE_CX_SUPPORTED_FEATURE, (diaEncodeAvpData_u)(void*)pSF, diaAvp_encodeSupportedFeature};
+//		diaEncodeAvp_t sf = {DIA_AVP_CODE_CX_SUPPORTED_FEATURE, (diaEncodeAvpData_u)(void*)&sf, diaAvp_encodeSupportedFeature};
 debug("to-remove, insert avp=%d", DIA_AVP_CODE_CX_SUPPORTED_FEATURE);
-    	osList_append(&uarParam.optAvpList, &sf);
+    	osList_append(&uarParam.optAvpList, &sfavp);
 #else
 		diaEncodeAvpGroupedData_t gData[DIA_MAX_SAME_AVP_NUM];
 		diaEncodeAvpData_u sfData[DIA_MAX_SAME_AVP_NUM];

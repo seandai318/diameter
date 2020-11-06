@@ -23,14 +23,14 @@ static void diaConnTimerFunc(uint64_t timerId, void* ptr);
 
 //static diaConnIntf_t gDiaConnIntf[DIA_MAX_INTERFACE_NUM];
 static diaConnIntf_t* gDiaConnIntf = NULL;
-static uint8_t intfNum;
+static uint8_t gIntfNum;
 
 
 osStatus_e diaConnMgr_init()
 {
 	osStatus_e status = OS_STATUS_OK;
 
-	intfNum = 0;
+	gIntfNum = 0;
 
 	gDiaConnIntf = oszalloc(sizeof(diaConnIntf_t)* *(uint64_t*)diaConfig_getConfig(DIA_XML_MAX_INTERFACE_NUM), NULL);
 	if(!gDiaConnIntf)
@@ -55,6 +55,9 @@ osStatus_e diaConnMgr_init()
 		gDiaConnIntf[i].intfState = DIA_CONN_INTF_STATE_NONE;
 	}
 
+#if 1	//to-remove, diaConn_initIntf shall be called by application
+	diaConn_initIntf(DIA_INTF_TYPE_CX);
+#else
 	diaIntfInfo_t cxIfInfo = {-1, DIA_INTF_TYPE_CX};
 	diaConnProv_t cxProv;
 	diaConfig_getPeer(DIA_INTF_TYPE_CX, &cxProv.peerIpPort);
@@ -62,11 +65,40 @@ osStatus_e diaConnMgr_init()
 	cxProv.isEnabled = true;
 	cxProv.isServer = diaConfig_isServer();
 	diaConnProv(&cxIfInfo, &cxProv);
+#endif
 
 EXIT:
 	return status;
 }
 
+
+osStatus_e diaConn_initIntf(diaIntfType_e intf)
+{
+#if 1
+	if(intf >= DIA_INTF_TYPE_INVALID || intf < 0)
+	{
+		logError("invalid intfType(%d).", intf);
+		return OS_ERROR_INVALID_VALUE;
+	}
+
+    diaIntfInfo_t intfInfo = {-1, intf};
+    diaConnProv_t intfProv;
+    diaConfig_getPeer(intf, &intfProv.peerIpPort);
+    intfProv.isPriority = true;
+    intfProv.isEnabled = true;
+    intfProv.isServer = diaConfig_isServer();
+    diaConnProv(&intfInfo, &intfProv);
+#else
+	diaIntfInfo_t cxIfInfo = {-1, DIA_INTF_TYPE_CX};
+    diaConnProv_t cxProv;
+    diaConfig_getPeer(DIA_INTF_TYPE_CX, &cxProv.peerIpPort);
+    cxProv.isPriority = true;
+    cxProv.isEnabled = true;
+    cxProv.isServer = diaConfig_isServer();
+    diaConnProv(&cxIfInfo, &cxProv);
+#endif
+	return OS_STATUS_OK;
+}
 
 osStatus_e diaConnMgr_onMsg(diaConnBlock_t* pDcb, diaTransportMsg_t* pTpMsg, diaMsgDecoded_t* pDiaDecoded)
 {
@@ -181,20 +213,20 @@ osStatus_e diaConnProv(diaIntfInfo_t* pIntfInfo, diaConnProv_t* pConnProv)
 
 	if(pIntfInfo->intfId < 0)
 	{
-		if(intfNum >= *(uint64_t*)diaConfig_getConfig(DIA_XML_MAX_INTERFACE_NUM))
+		if(gIntfNum >= *(uint64_t*)diaConfig_getConfig(DIA_XML_MAX_INTERFACE_NUM))
 		{
 			logError("all diameter interfaces have been used up, max number=%d.", *(uint64_t*)diaConfig_getConfig(DIA_XML_MAX_INTERFACE_NUM));
 			status = OS_ERROR_INVALID_VALUE;
 			goto EXIT;
 		}
 
-		pIntfInfo->intfId = intfNum++;
+		pIntfInfo->intfId = gIntfNum++;
 		//this will lead the entering of state machine
 		diaConnAddNewPeer(&gDiaConnIntf[pIntfInfo->intfId], pIntfInfo, pConnProv);
 	}
 	else
 	{
-		if(pIntfInfo->intfId >= intfNum)
+		if(pIntfInfo->intfId >= gIntfNum)
 		{
 			logError("app provided intfId(%d) has never been assigned.", pIntfInfo->intfId);
 			status = OS_ERROR_INVALID_VALUE;
@@ -311,7 +343,7 @@ diaConnBlock_t* diaConnGetActiveDcb(diaIntfInfo_t intfInfo)
 {
 	diaConnBlock_t* pDcb = NULL;
 
-	if(intfInfo.intfId >= intfNum)
+	if(intfInfo.intfId >= gIntfNum)
 	{
 		logError("app provided intfId(%d) is not assigned by connMgr.", intfInfo.intfId);
 		goto EXIT;
@@ -346,13 +378,30 @@ EXIT:
 }
 
 
+diaConnBlock_t* diaConnGetActiveDcbByIntf(diaIntfType_e intfType)
+{
+	diaIntfInfo_t intfInfo = {-1, intfType};
+
+	for(int i=0; i<gIntfNum; i++)
+	{
+		if(gDiaConnIntf[i].intfInfo.intfType == intfType)
+		{
+			intfInfo.intfId = i;
+			return diaConnGetActiveDcb(intfInfo);
+			break;
+		}
+	}
+
+	return NULL;
+}
+	
 
 diaConnBlock_t* diaConnMgr_getDcb(struct sockaddr_in* peer)
 {
 	diaPeerGroup_t* pPeerGrp;
 	osListElement_t* pLE;
 	diaConnBlock_t* pDcb = NULL;
-	for(int i=0; i<intfNum; i++)
+	for(int i=0; i<gIntfNum; i++)
 	{
 		for(int j=0; j<2; j++)
 		{
@@ -379,16 +428,12 @@ diaConnBlock_t* diaConnMgr_getDcb(struct sockaddr_in* peer)
 				} 
 			} //for(int k=0; k<2; k++)
 		} //for(int j=0; j<2; j++)
-	} //for(int i=0; i<intfNum; i++)
+	} //for(int i=0; i<gIntfNum; i++)
 
 EXIT:
 	return pDcb;
 }
 
-
-//static diaConnIntf_t gDiaConnIntf[DIA_MAX_INTERFACE_NUM];
-//static uint8_t intfNum;
-	
 
 static osStatus_e diaConnAddNewPeer(diaConnIntf_t* pConnIntf, diaIntfInfo_t* pIntfInfo, diaConnProv_t* pConnProv)
 {

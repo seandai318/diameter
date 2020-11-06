@@ -317,6 +317,29 @@ osStatus_e diaMsg_updateCmdFlag(osMBuf_t* pDiaBuf, uint8_t flag)
 }	
 
 
+osPointerLen_t* diaMsg_getSessId(diaMsgDecoded_t* pDecoded)
+{
+    if(!pDecoded)
+    {
+        return NULL;
+    }
+
+    osListElement_t* pHead = pDecoded->avpList.head;
+    if(!pHead)
+    {
+        return NULL;
+    }
+
+    diaAvp_t* pAvpSess = pHead->data;
+    if(!pAvpSess || pAvpSess->avpCode != DIA_AVP_CODE_SESSION_ID || pAvpSess->avpData.dataType != DIA_AVP_DATA_TYPE_OCTET_STRING)
+    {
+        logError("session avp is NULL or the first avp is not session_id(%d) or dataType(%d) is not octet.", pAvpSess ? pAvpSess->avpCode : 0, pAvpSess ? pAvpSess->avpData.dataType : DIA_AVP_DATA_TYPE_UNKNOWN);
+        return NULL;
+    }
+
+    return &pAvpSess->avpData.dataStr.pl;
+}
+
 
 #if 0
 diaAvp_encodeInfo_t avpList[5];

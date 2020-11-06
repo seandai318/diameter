@@ -6,6 +6,7 @@
 #include "osSockAddr.h"
 
 #include "diaTransportIntf.h"
+#include "diaMsg.h"
 
 
 typedef enum {
@@ -13,6 +14,7 @@ typedef enum {
     DIA_INTF_TYPE_GX,
     DIA_INTF_TYPE_RX,
     DIA_INTF_TYPE_SH,
+	DIA_INTF_TYPE_INVALID,
 } diaIntfType_e;
 
 
@@ -31,10 +33,17 @@ typedef struct diaConnProv {
 } diaConnProv_t;
 
 
+		
+//to-do to refine when working on app/diam interface
+typedef void (*diaNotifyApp_h)(diaMsgDecoded_t* pDecoded, void* appData);
+
+
 
 void dia_init();
+osStatus_e diaConn_initIntf(diaIntfType_e intf);
 osStatus_e diaConnProv(diaIntfInfo_t* pIntfInfo, diaConnProv_t* pConnProv);
 void diaMgr_onMsg(diaTransportMsg_t* pTpMsg);
+osStatus_e diaSendAppMsg(diaIntfType_e intfType, osMBuf_t* pMBuf, osPointerLen_t* pSessId, diaNotifyApp_h appCallback, void* appData);
 
 
 #endif

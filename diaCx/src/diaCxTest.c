@@ -27,6 +27,7 @@ osMBuf_t* testDiaUar()
 	osVPointerLen_t visitedNWId = {{VISITED_NW_ID, sizeof(VISITED_NW_ID)-1}, false, false};
 	DiaCxUarAuthType_e authType = DIA_CX_AUTH_TYPE_REGISTRATION;
 
+#if 0
 	diaAvp_supportedFeature_t sf;
 	sf.fl[0].vendorId = DIA_AVP_VENDOR_3GPP;
 	sf.fl[0].featureListId = 1;
@@ -35,6 +36,10 @@ osMBuf_t* testDiaUar()
 
 	diaHdrSessInfo_t diaHdrSessInfo;
 	return diaBuildUar(&userName, &pubId, &visitedNWId, authType, &sf, NULL, &diaHdrSessInfo);
+#else
+    diaHdrSessInfo_t diaHdrSessInfo;
+    return diaBuildUar(&userName, &pubId, &visitedNWId, authType, 0x4, NULL, &diaHdrSessInfo);
+#endif
 }
 
 

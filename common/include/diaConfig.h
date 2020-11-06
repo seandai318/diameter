@@ -20,6 +20,7 @@
 
 
 typedef enum {
+	DIA_XML_HASH_SIZE,		//the dia cmd request wait for response hash size
 	DIA_XML_DEST_HOST,
 	DIA_XML_IS_SERVER,		//if the diameter functions as a server
 	DIA_XML_ORIG_HOST,      //example value: "cscf01.ims.seandai.com"
@@ -37,6 +38,7 @@ typedef enum {
 	DIA_XML_CONN_TIMER_WATCHDOG,             	//example value: 40000       //timer to send DWR, also be used for other DWR related timer
 	DIA_XML_CONN_TIMER_WAIT_CONN,            	//example value: 60000       //started a connection, wait the conn to be established
 	DIA_XML_CONN_TIMER_RETRY_CONN,           	//example value: 120000      //conn is down, retry new conn
+	DIA_XML_REQ_WAIT_RESP_DEFAULT_TIME,			//example value: 5000		//wait for the response for a dia cmd request
 	DIA_XML_CONFIG_MAX_AVP_INSIDE_GRP_AVP,   	//example value: 10
 	DIA_XML_CONN_TIMER_TRANSMIT_WAIT_TIME,   	//example value: 5000        //wait for a msg to be delivered to the peer
 	DIA_XML_CX_MAX_SERVER_CAPABILITY_ITEM,   	//example value: 10
@@ -45,6 +47,8 @@ typedef enum {
 } diaConfig_xmlDataName_e;
 
 
+
+#define DIA_HASH_SIZE						(*(uint64_t*)diaConfig_getConfig(DIA_XML_HASH_SIZE))				//the hash size for waiting for a response for a dia cmd request 
 
 
 #define DIA_MAX_SAME_AVP_NUM    			5       //how many the same name AVPs can be in a diameter message
@@ -73,7 +77,7 @@ typedef enum {
 //#define DIA_CONN_TIMER_WATCHDOG           30000       //timer to send DWR, also be used for other DWR related timer
 #define DIA_CONN_TIMER_WATCHDOG             (*(uint64_t*)diaConfig_getConfig(DIA_XML_CONN_TIMER_WATCHDOG))		//40000       //timer to send DWR, also be used for other DWR related timer
 #define DIA_CONN_TIMER_TRANSMIT_WAIT_TIME   (*(uint64_t*)diaConfig_getConfig(DIA_XML_CONN_TIMER_TRANSMIT_WAIT_TIME))	//5000        //wait for a msg to be delivered to the peer
-
+#define DIA_REQ_WAIT_RESP_DEFAULT_TIME		(*(uint64_t*)diaConfig_getConfig(DIA_XML_REQ_WAIT_RESP_DEFAULT_TIME))	//5000, wait for the dia command response for a request
 
 #define DIA_FIRMWARE_REVISION       		(*(uint64_t*)diaConfig_getConfig(DIA_XML_FIRMWARE_REVISION))		//0
 #define DIA_PRODUCT_NAME            		(*(osPointerLen_t*)diaConfig_getConfig(DIA_XML_PRODUCT_NAME))		//"Sean's Diameter Stack"
