@@ -441,7 +441,7 @@ static void diaEncodeAvp_cleanup(void* pData)
         	osfree(pAvp->avpData.pDataGrouped);
 			break;
 		case DIA_AVP_ENCODE_DATA_TYPE_STR:
-			osVPL_free(pAvp->avpData.pDataStr);
+			osVPL_free(pAvp->avpData.pDataStr, true);
 			break;
 		default:
 			break;

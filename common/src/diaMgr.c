@@ -215,7 +215,7 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 			}
 
 			osListPlus_free(pHostIpList);
-			osVPL_free(productName);
+			osVPL_free(productName, true);
 			osList_free(pSupportedVendorId);
 			osList_free(pAuthAppId);
 			osList_free(pAcctAppId);
