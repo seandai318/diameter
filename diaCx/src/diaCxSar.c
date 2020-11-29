@@ -17,6 +17,60 @@
 static osStatus_e diaCxSar_encodeRestInfo(osMBuf_t* pDiaBuf, void* pData);
 
 
+osStatus_e diaCx_sendSAR(diaCxSarAppInput_t* pSarInput, diaNotifyApp_h appCallback, void* pAppData)
+{
+	osStatus_e status = OS_STATUS_OK;
+    diaHdrSessInfo_t hdrSessInfo = {};
+
+	if(!pSarInput)
+	{
+		logError("null pointer, pSarInput.");
+		status = OS_ERROR_NULL_POINTER;
+		goto EXIT;
+	}
+
+    if(!pSarInput->pImpu || !pSarInput->pServerName || !pSarInput->pDestHost || !pSarInput->pSarInfo)
+	{
+		logError("null pointer, pImpu=%p, pServerName=%p, pDestHost=%p, pSarInfo=%p.", pSarInput->pImpu, pSarInput->pServerName, pSarInput->pDestHost, pSarInput->pSarInfo);
+		status = OS_ERROR_NULL_POINTER;
+		goto EXIT;
+    }
+
+	osVPointerLen_t userName = {};
+	if(pSarInput->pImpi)
+	{
+		userName.pl = *pSarInput->pImpi;
+	}
+
+	osVPointerLen_t pubId = {*pSarInput->pImpu, false, false};
+	osVPointerLen_t serverName = {*pSarInput->pServerName, false, false};
+	osVPointerLen_t destHost = {*pSarInput->pDestHost, false, false};
+	diaAvp_supportedFeature_t sf;
+    sf.fl[0].vendorId = DIA_AVP_VENDOR_3GPP;
+    sf.fl[0].featureListId = 1;
+    sf.fl[0].featureList = pSarInput->featureList;
+    sf.flNum = 1;
+
+	osMBuf_t* pMBuf = diaBuildSar(pSarInput->pImpi ? &userName : NULL, &pubId, &serverName, &destHost, pSarInput->pSarInfo, &sf, pSarInput->pExtraOptList, &hdrSessInfo);
+	if(!pMBuf)
+	{
+		logError("fails to diaBuildSar for pubId(%r).", pSarInput->pImpu);
+		status = OS_ERROR_SYSTEM_FAILURE;
+		goto EXIT;
+	}
+
+	status = diaSendAppMsg(DIA_INTF_TYPE_CX, pMBuf, &hdrSessInfo.sessionId.pl, appCallback, pAppData);        
+	osMBuf_dealloc(pMBuf);
+
+EXIT:
+    if(status != OS_STATUS_OK && hdrSessInfo.sessionId.isPDynamic)
+    {
+        osfree((char*)hdrSessInfo.sessionId.pl.p);
+    }
+	return status;
+}
+
+
 /*
  * 3gpp29.229, section 6.1.3
  *

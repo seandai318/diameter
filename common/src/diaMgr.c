@@ -29,6 +29,7 @@ typedef struct {
 
 static void dia_onTimeout(uint64_t timerId, void* ptr);
 static void diaHashData_cleanup(void* data);
+static void dia_deleteHashNode(osListElement_t* pHashLE);
 
 static osHash_t* diaHash;
 static uint32_t diaOrigStateId;
@@ -128,7 +129,7 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
 					diaNotifyApp_h notifyApp = pDiaHashData->appCallback ? pDiaHashData->appCallback : pDcb->diaNotifyApp;
 					notifyApp(pDiaDecoded, pDiaHashData->appData);
 
-				    osHash_deleteNode(pHashLE, OS_HASH_DEL_NODE_TYPE_ALL);
+					dia_deleteHashNode(pHashLE);
 				}
 				break;
 			}
@@ -362,7 +363,7 @@ static void dia_onTimeout(uint64_t timerId, void* ptr)
 
 	notifyApp(NULL, pDiaHashData->appData);
 
-    osHash_deleteNode(ptr, OS_HASH_DEL_NODE_TYPE_ALL);
+	dia_deleteHashNode(ptr);	
 }
 
 
@@ -374,4 +375,17 @@ static void diaHashData_cleanup(void* data)
 	}
 
 	osfree(((diaHashData_t*)data)->pDcb);
+}
+
+
+static void dia_deleteHashNode(osListElement_t* pHashLE)
+{
+	if(!pHashLE)
+	{
+		logError("pHashLE is NULL.");
+		return;
+	}
+
+	osHash_freeKey(pHashLE, true);
+	osHash_deleteNode(pHashLE, OS_HASH_DEL_NODE_TYPE_ALL);
 }
