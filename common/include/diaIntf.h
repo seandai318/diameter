@@ -44,6 +44,7 @@ osStatus_e diaConn_initIntf(diaIntfType_e intf);
 osStatus_e diaConnProv(diaIntfInfo_t* pIntfInfo, diaConnProv_t* pConnProv);
 void diaMgr_onMsg(diaTransportMsg_t* pTpMsg);
 osStatus_e diaSendAppMsg(diaIntfType_e intfType, osMBuf_t* pMBuf, osPointerLen_t* pSessId, diaNotifyApp_h appCallback, void* appData);
+struct sockaddr_in* diaConnGetActiveDest(diaIntfType_e intfType);
 
 
 #endif

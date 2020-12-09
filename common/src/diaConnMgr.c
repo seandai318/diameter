@@ -394,7 +394,20 @@ diaConnBlock_t* diaConnGetActiveDcbByIntf(diaIntfType_e intfType)
 
 	return NULL;
 }
+
+
+struct sockaddr_in* diaConnGetActiveDest(diaIntfType_e intfType)
+{
+	diaConnBlock_t* pDcb = diaConnGetActiveDcbByIntf(intfType);
 	
+	if(pDcb)
+	{
+		return &pDcb->tpInfo.peer;
+	}
+		
+	return NULL;
+}
+ 	
 
 diaConnBlock_t* diaConnMgr_getDcb(struct sockaddr_in* peer)
 {
