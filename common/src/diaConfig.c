@@ -149,6 +149,20 @@ void diaConfig_getHostRealm(diaRealmHost_t* pRealmHost)
 } 
 
 
+//for NW Id, just use orig realm
+void diaConfig_getHostNWId(osVPointerLen_t* pNWId)
+{
+	if(!pNWId)
+	{
+		logError("null pointer, pNWId");
+		return;
+	}
+
+	 osVPL_init(pNWId, false);
+	osVPL_setPL(pNWId, diaConfig_getConfig(DIA_XML_ORIG_REALM), false);
+}
+
+
 void diaConfig_getHost(osPointerLen_t* host, int* port)
 {
 	*host = *(osPointerLen_t*) diaConfig_getConfig(DIA_XML_CONFIG_LOCAL_IP);

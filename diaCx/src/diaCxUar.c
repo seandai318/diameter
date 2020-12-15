@@ -15,6 +15,52 @@
 #include "diaConfig.h"
 
 
+
+
+osStatus_e diaCx_sendUAR(diaCxUarAppInput_t* pUarInput, diaNotifyApp_h appCallback, void* pAppData)
+{
+    osStatus_e status = OS_STATUS_OK;
+    diaHdrSessInfo_t hdrSessInfo = {};
+
+    if(!pUarInput)
+    {
+        logError("null pointer, pUarInput.");
+        status = OS_ERROR_NULL_POINTER;
+        goto EXIT;
+    }
+
+    if(!pUarInput->pImpi || !pUarInput->pImpu)
+    {
+        logError("null pointer, pImpu=%p, pImpu=%p.", pUarInput->pImpu, pUarInput->pImpu);
+        status = OS_ERROR_NULL_POINTER;
+        goto EXIT;
+    }
+
+    osVPointerLen_t userName = {*pUarInput->pImpi, false, false};
+    osVPointerLen_t pubId = {*pUarInput->pImpu, false, false};
+	osVPointerLen_t visitedNWId;
+	diaConfig_getHostNWId(&visitedNWId);
+
+    osMBuf_t* pMBuf = diaBuildUar(&userName, &pubId, &visitedNWId, pUarInput->authType, pUarInput->featureList, pUarInput->pExtraOptList, &hdrSessInfo);
+    if(!pMBuf)
+    {
+        logError("fails to diaBuildUar for pubId(%r).", pUarInput->pImpu);
+        status = OS_ERROR_SYSTEM_FAILURE;
+        goto EXIT;
+    }
+
+    status = diaSendAppMsg(DIA_INTF_TYPE_CX, pMBuf, &hdrSessInfo.sessionId.pl, appCallback, pAppData);
+    osMBuf_dealloc(pMBuf);
+
+EXIT:
+    if(status != OS_STATUS_OK && hdrSessInfo.sessionId.isPDynamic)
+    {
+        osfree((char*)hdrSessInfo.sessionId.pl.p);
+    }
+    return status;
+}
+
+
 /*
  * 3gpp29.229, section 6.1.1
  *
@@ -310,36 +356,9 @@ osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPoin
     	sf.fl[0].featureList = featureList;
     	sf.flNum = 1;
 
-#if 1
-#if 0
-		diaAvp_supportedFeature_t sfData;
-		sf.flNum = 2;
-		sf.fl[0].vendorId = DIA_AVP_VENDOR_ID_3GPP;
-		sf.fl[0].featureListId = 1;
-		sf.fl[0].featureList = 0x2000;
-    	sf.fl[1].vendorId = DIA_AVP_VENDOR_ID_3GPP;
-    	sf.fl[1].featureListId = 2;
-    	sf.fl[1].featureList = 0x3000;
-#endif
-//		diaEncodeAvp_t sf = {DIA_AVP_CODE_CX_SUPPORTED_FEATURE, (diaEncodeAvpData_u)(void*)&sf, diaAvp_encodeSupportedFeature};
+		diaEncodeAvp_t sf = {DIA_AVP_CODE_CX_SUPPORTED_FEATURE, (diaEncodeAvpData_u)(void*)&sf, diaAvp_encodeSupportedFeature};
 debug("to-remove, insert avp=%d", DIA_AVP_CODE_CX_SUPPORTED_FEATURE);
     	osList_append(&uarParam.optAvpList, &sfavp);
-#else
-		diaEncodeAvpGroupedData_t gData[DIA_MAX_SAME_AVP_NUM];
-		diaEncodeAvpData_u sfData[DIA_MAX_SAME_AVP_NUM];
-	 	diaEncodeAvp_t sf[DIA_MAX_SAME_AVP_NUM];
-		for(int i=0; i<pSF->flNum; i++)
-		{
-    		gData[i].avpNum = 3;
-			gData[i].pDiaAvp = osmalloc(sizeof(diaEncodeAvp_t)*3, NULL);
-			diaAvpEncode_setValue(&gData[i].pDiaAvp[0], DIA_AVP_CODE_VENDOR_ID, DIA_AVP_VENDOR_ID_3GPP, NULL);
-			diaAvpEncode_setValue(&gData[i].pDiaAvp[1], DIA_AVP_CODE_CX_FEATURE_LIST_ID, pSF->featureListId, NULL);
-			diaAvpEncode_setValue(&gData[i].pDiaAvp[2], DIA_AVP_CODE_CX_FEATURE_LIST, pSF->featureList, NULL);
-			sfData[i].pDataGrouped = &gData[i]; 
-    		diaAvpEncode_setValue(&sf[i], DIA_AVP_CODE_CX_SUPPORTED_FEATURE, &sfData[i], NULL);
-    		osList_append(&uarParam.optAvpList, &sf[i]);
-		}
-#endif
 	}
 
 	diaEncodeAvp_t authTypeAvp = {DIA_AVP_CODE_CX_USER_AUTH_TYPE, (diaEncodeAvpData_u)authType, NULL};

@@ -202,6 +202,7 @@ typedef struct diaXml_nodeFunction {
 void diaConfig_init(char* diaConfigFolder);
 void* diaConfig_getConfig(diaConfig_xmlDataName_e dataName);
 void diaConfig_getHostRealm(diaRealmHost_t* pRealmHost);
+void diaConfig_getHostNWId(osVPointerLen_t* pNWId);
 bool diaConfig_isServer();
 void diaConfig_getHost(osPointerLen_t* host, int* port);
 void diaConfig_getHost1(struct sockaddr_in* pHost);

@@ -47,7 +47,17 @@ typedef struct diaCxUaaParam {
 
 
 
-//osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
+//a group of input data provided by application that calls UAR
+typedef struct {
+	DiaCxUarAuthType_e authType;
+    osPointerLen_t* pImpi;
+    osPointerLen_t* pImpu;
+    uint32_t featureList;
+    osList_t* pExtraOptList;
+}diaCxUarAppInput_t;
+
+
+osStatus_e diaCx_sendUAR(diaCxUarAppInput_t* pUarInput, diaNotifyApp_h appCallback, void* pAppData);
 osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, uint32_t featureList, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
 osMBuf_t* diaCxUar_encode(diaCxUarParam_t* pUarParam, diaHdrSessInfo_t* pHdrSessInfo);
 
