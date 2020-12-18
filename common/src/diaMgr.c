@@ -47,7 +47,7 @@ void dia_init(char* diaConfigFolder)
 	diaHash = osHash_create(DIA_HASH_SIZE);
     if(!diaHash)
     {
-        logError("fails to create diaHash.");
+        logError("fails to create diaHash, hashSize=%d.", DIA_HASH_SIZE);
         return;
     }
 
@@ -250,7 +250,7 @@ osStatus_e diaSendCommonMsg(diaIntfType_e intfType, diaConnBlock_t* pDcb, diaCmd
 		status = OS_ERROR_NETWORK_FAILURE;
 	}
 
-#if 1	//to-remove, for testing
+#if 0	//to-remove, for testing
 	if(cmd == DIA_CMD_CODE_DWR && runNum <= 3)
 	{
 		runNum++;
