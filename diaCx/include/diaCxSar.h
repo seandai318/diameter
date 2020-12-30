@@ -98,7 +98,6 @@ typedef struct {
     osPointerLen_t* pImpi;
     osPointerLen_t* pImpu;
     osPointerLen_t* pServerName;
-    osPointerLen_t* pDestHost;
     diaCxSarInfo_t* pSarInfo;
     uint32_t featureList;
     osList_t* pExtraOptList;
@@ -108,7 +107,7 @@ typedef struct {
 //API for application to send a SAR requet
 osStatus_e diaCx_sendSAR(diaCxSarAppInput_t* pSarInput, diaNotifyApp_h appCallback, void* pAppData);
 osStatus_e diaSar_encode(osMBuf_t* pDiaBuf, diaCxSarParam_t* pSarParam);
-osMBuf_t* diaBuildSar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* serverName, osVPointerLen_t* pDestHost, diaCxSarInfo_t* pSarInfo, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
+osMBuf_t* diaBuildSar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* serverName, osVPointerLen_t* pDestHost, osVPointerLen_t* pDestRealm, diaCxSarInfo_t* pSarInfo, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
 
 
 #endif

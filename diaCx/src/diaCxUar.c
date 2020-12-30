@@ -13,7 +13,7 @@
 #include "diaCxUar.h"
 #include "diaCxAvp.h" 
 #include "diaConfig.h"
-
+#include "diaConnState.h"
 
 
 
@@ -36,12 +36,23 @@ osStatus_e diaCx_sendUAR(diaCxUarAppInput_t* pUarInput, diaNotifyApp_h appCallba
         goto EXIT;
     }
 
+    diaConnBlock_t* pDcb = diaConnGetActiveDcbByIntf(DIA_INTF_TYPE_CX);
+    if(!pDcb)
+    {
+        logError("no active diameter connection exists for DIA_INTF_TYPE_CX.");
+        status = OS_ERROR_SYSTEM_FAILURE;
+        goto EXIT;
+    }
+
+    osVPointerLen_t destHost = {pDcb->peerHost.pl, false, false};
+    osVPointerLen_t destRealm = {pDcb->peerRealm.pl, false, false};
+
     osVPointerLen_t userName = {*pUarInput->pImpi, false, false};
     osVPointerLen_t pubId = {*pUarInput->pImpu, false, false};
 	osVPointerLen_t visitedNWId;
 	diaConfig_getHostNWId(&visitedNWId);
 
-    osMBuf_t* pMBuf = diaBuildUar(&userName, &pubId, &visitedNWId, pUarInput->authType, pUarInput->featureList, pUarInput->pExtraOptList, &hdrSessInfo);
+    osMBuf_t* pMBuf = diaBuildUar(&userName, &pubId, &visitedNWId, pUarInput->authType, &destHost, &destRealm, pUarInput->featureList, pUarInput->pExtraOptList, &hdrSessInfo);
     if(!pMBuf)
     {
         logError("fails to diaBuildUar for pubId(%r).", pUarInput->pImpu);
@@ -49,7 +60,7 @@ osStatus_e diaCx_sendUAR(diaCxUarAppInput_t* pUarInput, diaNotifyApp_h appCallba
         goto EXIT;
     }
 
-    status = diaSendAppMsg(DIA_INTF_TYPE_CX, pMBuf, &hdrSessInfo.sessionId.pl, appCallback, pAppData);
+    status = diaSendAppMsg(DIA_INTF_TYPE_CX, NULL, pMBuf, &hdrSessInfo.sessionId.pl, appCallback, pAppData);
     osMBuf_dealloc(pMBuf);
 
 EXIT:
@@ -324,23 +335,25 @@ EXIT:
 
 //pList contains extra optional AVPs
 //osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
-osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, uint32_t featureList, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
+osMBuf_t* diaBuildUar(osVPointerLen_t* userName, osVPointerLen_t* pubId, osVPointerLen_t* visitedNWId, DiaCxUarAuthType_e authType, osVPointerLen_t* pDestHost, osVPointerLen_t* pDestRealm, uint32_t featureList, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
 {
 
-	if(!userName || !pubId || !visitedNWId || !pHdrSessInfo)
+	if(!userName || !pubId || !visitedNWId || !pHdrSessInfo || !pDestRealm)
 	{
-		logError("null pointer for mandatory parameters, userName=%p, pubId=%p, visitedNWId=%p, pHdrSessInfo=%p.", userName, pubId, visitedNWId, pHdrSessInfo);
+		logError("null pointer for mandatory parameters, userName=%p, pubId=%p, visitedNWId=%p, pHdrSessInfo=%p, pDestRealm=%p.", userName, pubId, visitedNWId, pHdrSessInfo, pDestRealm);
 		return NULL;
 	}
 
 	diaCxUarParam_t uarParam = {};
 
 	diaConfig_getHostRealm(&uarParam.realmHost);
-	diaEncodeAvp_t destHost = {DIA_AVP_CODE_DEST_HOST, (diaEncodeAvpData_u)&uarParam.realmHost.destHost, NULL};
-	if(uarParam.realmHost.destHost.pl.p)
+	diaEncodeAvp_t destHost = {DIA_AVP_CODE_DEST_HOST, (diaEncodeAvpData_u)pDestHost, NULL};
+	if(pDestHost)
 	{
 		osList_append(&uarParam.optAvpList, &destHost);
 	}
+
+	uarParam.realmHost.destRealm.pl = pDestRealm->pl;
 
 	uarParam.userName = *userName;
 	uarParam.pubId = *pubId;

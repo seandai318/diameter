@@ -21,10 +21,8 @@
 
 typedef enum {
 	DIA_XML_HASH_SIZE,		//the dia cmd request wait for response hash size
-	DIA_XML_DEST_HOST,
 	DIA_XML_IS_SERVER,		//if the diameter functions as a server
 	DIA_XML_ORIG_HOST,      //example value: "cscf01.ims.seandai.com"
-	DIA_XML_DEST_REALM,     //example value: "ims.seandai.com"
 	DIA_XML_ORIG_REALM,     //example value: "ims.seandai.com"
 	DIA_XML_PRODUCT_NAME,   		//example value: "Sean's Diameter Stack"
 	DIA_XML_CONFIG_PEER_IP,     	//example value: "192.168.1.92"

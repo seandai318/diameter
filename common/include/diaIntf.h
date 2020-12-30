@@ -37,13 +37,14 @@ typedef struct diaConnProv {
 //to-do to refine when working on app/diam interface
 typedef void (*diaNotifyApp_h)(diaMsgDecoded_t* pDecoded, void* appData);
 
-
+struct diaConnBlock;
 
 void dia_init();
 osStatus_e diaConn_initIntf(diaIntfType_e intf);
 osStatus_e diaConnProv(diaIntfInfo_t* pIntfInfo, diaConnProv_t* pConnProv);
 void diaMgr_onMsg(diaTransportMsg_t* pTpMsg);
-osStatus_e diaSendAppMsg(diaIntfType_e intfType, osMBuf_t* pMBuf, osPointerLen_t* pSessId, diaNotifyApp_h appCallback, void* appData);
+//diaConnBlock_t* if pDcb is NULL, the function will try to find one based on the intfType
+osStatus_e diaSendAppMsg(diaIntfType_e intfType, struct diaConnBlock* pDcb, osMBuf_t* pMBuf, osPointerLen_t* pSessId, diaNotifyApp_h appCallback, void* appData);
 struct sockaddr_in* diaConnGetActiveDest(diaIntfType_e intfType);
 
 

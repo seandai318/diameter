@@ -81,7 +81,7 @@ typedef struct diaCxMarParam {
 	
 
 //pList contains extra optional AVPs
-osMBuf_t* diaBuildMar(osVPointerLen_t* userName, osVPointerLen_t* pubId, diaCxMarSipAuthDataItem_t* pAuthData, osVPointerLen_t* serverName, osVPointerLen_t* pDestHost, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
+osMBuf_t* diaBuildMar(osVPointerLen_t* userName, osVPointerLen_t* pubId, diaCxMarSipAuthDataItem_t* pAuthData, osVPointerLen_t* serverName, osVPointerLen_t* pDestHost, osVPointerLen_t* pDestRealm, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo);
 
 osStatus_e diaMar_encode(osMBuf_t* pDiaBuf, diaCxMarParam_t* pMarParam, diaHdrSessInfo_t* pHdrSessInfo);
 

@@ -18,6 +18,7 @@
 
 static osStatus_e diaConnAddNewPeer(diaConnIntf_t* pConnIntf, diaIntfInfo_t* intfInfo, diaConnProv_t* pConnProv);
 static void diaConnTimerFunc(uint64_t timerId, void* ptr);
+static void diaConnBlock_cleanup(void* data);
 
 
 
@@ -472,7 +473,7 @@ static osStatus_e diaConnAddNewPeer(diaConnIntf_t* pConnIntf, diaIntfInfo_t* pIn
 	pConnIntf->isServer = pConnProv->isServer;
 
 	diaPeerGroup_t* pPeerGrp = pConnProv->isPriority ? &pConnIntf->priorityGroup : &pConnIntf->stbyGroup;		
-	diaConnBlock_t* pDcb = osmalloc(sizeof(diaConnBlock_t), NULL);
+	diaConnBlock_t* pDcb = oszalloc(sizeof(diaConnBlock_t), diaConnBlock_cleanup);
 	if(!pDcb)
 	{
 		logError("fails to osmalloc for pDcb.");
@@ -505,3 +506,33 @@ static void diaConnTimerFunc(uint64_t timerId, void* ptr)
 }
 
 
+static void diaConnBlock_cleanup(void* data)
+{
+	if(!data)
+	{
+		return;
+	}
+
+	diaConnBlock_t* pDcb = data;
+	osVPL_free(&pDcb->peerHost, true);
+	osVPL_free(&pDcb->peerRealm, true);
+
+	if(pDcb->timerId_tpWaitConn)
+	{
+		pDcb->timerId_tpWaitConn = osStopTimer(pDcb->timerId_tpWaitConn);
+	}
+    if(pDcb->timerId_tpRetryConn)
+	{
+		pDcb->timerId_tpRetryConn = osStopTimer(pDcb->timerId_tpRetryConn);
+	}
+
+    if(pDcb->timerId_watchdog)
+	{
+		pDcb->timerId_watchdog = osStopTimer(pDcb->timerId_watchdog);
+    }
+
+	if(pDcb->timerId_twt)
+	{
+		pDcb->timerId_twt = osStopTimer(pDcb->timerId_twt);
+	}
+}

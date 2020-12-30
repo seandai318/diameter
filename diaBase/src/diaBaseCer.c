@@ -4,6 +4,7 @@
 
 #include "osList.h"
 #include "osMemory.h"
+#include "osPL.h"
 
 #include "diaMsg.h"
 #include "diaAvp.h"
@@ -544,6 +545,50 @@ EXIT:
 
 osStatus_e diaConnProcessCea(diaMsgDecoded_t* pDiaDecoded, struct diaConnBlock* pDcb)
 {
-	//TO-DO, add logic
-	return OS_STATUS_OK;
+    osStatus_e status = OS_STATUS_OK;
+
+	if(!pDiaDecoded || !pDcb)
+	{
+		logError("null pointer, pDiaDecoded=%p, pDcb=%p.", pDiaDecoded, pDcb);
+		return OS_ERROR_NULL_POINTER;
+	}
+
+    //starts from avp after sessionId
+    osListElement_t* pLE = pDiaDecoded->avpList.head->next;
+    while(pLE)
+    {
+        diaAvp_t* pAvp = pLE->data;
+        switch(pAvp->avpCode)
+        {
+            case DIA_AVP_CODE_RESULT_CODE:
+				if(pAvp->avpData.data32 >= 3000 || pAvp->avpData.data32 < 2000)
+				{
+					logInfo("CEA result code=%d, CER fails.", pAvp->avpData.data32);
+					status = OS_ERROR_EVENT_FAILURE;
+					goto EXIT;
+				}
+				break;
+            case DIA_AVP_CODE_EXPERIMENTAL_RESULT_CODE:
+                if(pAvp->avpData.data32 >= 3000 || pAvp->avpData.data32 < 2000)
+                {
+                    logInfo("CEA experimental result=%d, CER fails.", pAvp->avpData.data32);
+                    status = OS_ERROR_EVENT_FAILURE;
+                    goto EXIT;
+                }
+                break;
+			case DIA_AVP_CODE_ORIG_HOST:
+				osVPL_copyVPL(&pDcb->peerHost, &pAvp->avpData.dataStr);
+                break;
+			case DIA_AVP_CODE_ORIG_REALM:
+				osVPL_copyVPL(&pDcb->peerRealm, &pAvp->avpData.dataStr);
+				break;
+			default:
+				break;
+		}
+
+		pLE = pLE->next;
+	}
+
+EXIT:
+	return status;
 }

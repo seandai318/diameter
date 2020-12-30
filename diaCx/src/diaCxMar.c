@@ -187,7 +187,7 @@ EXIT:
 
 
 //pList contains extra optional AVPs
-osMBuf_t* diaBuildMar(osVPointerLen_t* userName, osVPointerLen_t* pubId, diaCxMarSipAuthDataItem_t* pAuthData, osVPointerLen_t* serverName, osVPointerLen_t* pDestHost, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
+osMBuf_t* diaBuildMar(osVPointerLen_t* userName, osVPointerLen_t* pubId, diaCxMarSipAuthDataItem_t* pAuthData, osVPointerLen_t* serverName, osVPointerLen_t* pDestHost, osVPointerLen_t* pDestRealm, diaAvp_supportedFeature_t* pSF, osList_t* pExtraOptList, diaHdrSessInfo_t* pHdrSessInfo)
 {
 
 	if(!userName || !pubId || !serverName || !pAuthData)
@@ -204,6 +204,12 @@ osMBuf_t* diaBuildMar(osVPointerLen_t* userName, osVPointerLen_t* pubId, diaCxMa
 	{
 		osList_append(&marParam.optAvpList, &destHost);
 	}
+
+    diaEncodeAvp_t destRealm = {DIA_AVP_CODE_DEST_REALM, (diaEncodeAvpData_u)pDestRealm, NULL};
+    if(pDestRealm)
+    {
+        osList_append(&marParam.optAvpList, &destRealm);
+    }
 
 	marParam.userName = *userName;
 	marParam.pubId = *pubId;

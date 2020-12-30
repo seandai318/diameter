@@ -19,10 +19,8 @@
 //the order must be sorted based on the data name length.  for the data name with the same len, their orders do not matter
 osXmlData_t diaConfig_xmlData[DIA_XML_MAX_DATA_NAME_NUM] = {
 	{DIA_XML_HASH_SIZE,			{"DIA_HASH_SIZE", sizeof("DIA_HASH_SIZE")-1}, 			  OS_XML_DATA_TYPE_XS_LONG, false},
-    {DIA_XML_DEST_HOST,         {"DIA_DEST_HOST", sizeof("DIA_DEST_HOST")-1},             OS_XML_DATA_TYPE_XS_STRING, false},
     {DIA_XML_IS_SERVER,         {"DIA_IS_SERVER", sizeof("DIA_IS_SERVER")-1},             OS_XML_DATA_TYPE_XS_BOOLEAN, false},
     {DIA_XML_ORIG_HOST,         {"DIA_ORIG_HOST", sizeof("DIA_ORIG_HOST")-1},             OS_XML_DATA_TYPE_XS_STRING, false},
-    {DIA_XML_DEST_REALM,        {"DIA_DEST_REALM", sizeof("DIA_DEST_REALM")-1},           OS_XML_DATA_TYPE_XS_STRING, false},
     {DIA_XML_ORIG_REALM,        {"DIA_ORIG_REALM", sizeof("DIA_ORIG_REALM")-1},           OS_XML_DATA_TYPE_XS_STRING, false},
     {DIA_XML_PRODUCT_NAME,      {"DIA_PRODUCT_NAME", sizeof("DIA_PRODUCT_NAME")-1},       OS_XML_DATA_TYPE_XS_STRING, false},
     {DIA_XML_CONFIG_PEER_IP,    {"DIA_CONFIG_PEER_IP", sizeof("DIA_CONFIG_PEER_IP")-1},       OS_XML_DATA_TYPE_XS_STRING, false},
@@ -92,18 +90,16 @@ void* diaConfig_getConfig(diaConfig_xmlDataName_e dataName)
 {
 	switch(dataName)
 	{
-		case DIA_XML_DEST_HOST:
 		case DIA_XML_ORIG_HOST:
-		case DIA_XML_DEST_REALM:
 		case DIA_XML_ORIG_REALM:
 		case DIA_XML_PRODUCT_NAME:
 		case DIA_XML_CONFIG_PEER_IP:
 		case DIA_XML_CONFIG_LOCAL_IP:
-			mdebug(LM_DIA, "dataName=%d, xmlStr=%r.", dataName, &diaConfig_xmlData[dataName].xmlStr);
+			mdebug(LM_DIA, "dataName=%r, xmlStr=%r.", &diaConfig_xmlData[dataName].dataName, &diaConfig_xmlData[dataName].xmlStr);
 			return &diaConfig_xmlData[dataName].xmlStr;
 			break;
 		case DIA_XML_IS_SERVER:
-			mdebug(LM_DIA, "dataName=%d, xmlIsTrue=%d.", dataName, diaConfig_xmlData[dataName].xmlIsTrue);
+			mdebug(LM_DIA, "dataName=%r, xmlIsTrue=%d.", &diaConfig_xmlData[dataName].dataName, diaConfig_xmlData[dataName].xmlIsTrue);
 			return &diaConfig_xmlData[dataName].xmlIsTrue;
 			break;
 		case DIA_XML_HASH_SIZE:
@@ -121,11 +117,11 @@ void* diaConfig_getConfig(diaConfig_xmlDataName_e dataName)
 		case DIA_XML_CONN_TIMER_TRANSMIT_WAIT_TIME:
 		case DIA_XML_CX_MAX_SERVER_CAPABILITY_ITEM:
 		case DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE:
-            mdebug(LM_DIA, "dataName=%d, xmlInt=%d.", dataName, diaConfig_xmlData[dataName].xmlInt);
+            mdebug(LM_DIA, "dataName=%r, xmlInt=%d.", &diaConfig_xmlData[dataName].dataName, diaConfig_xmlData[dataName].xmlInt);
 			return &diaConfig_xmlData[dataName].xmlInt;
 			break;
 		default:
-			logError("dataName is not defined(%d).", dataName);
+			logError("dataName(%d) is not defined.", dataName);
 			break;
 	}
 
@@ -148,7 +144,7 @@ void diaConfig_getHostRealm(diaRealmHost_t* pRealmHost)
 
 	osVPL_setPL(&pRealmHost->origRealm, diaConfig_getConfig(DIA_XML_ORIG_REALM), false);
 	osVPL_setPL(&pRealmHost->origHost, diaConfig_getConfig(DIA_XML_ORIG_HOST), false); 
-	osVPL_setPL(&pRealmHost->destRealm, diaConfig_getConfig(DIA_XML_DEST_REALM), false);
+	//for destRealm and destHost, they are not configured, instead, get from the origDest and origRealm of CEA
 } 
 
 

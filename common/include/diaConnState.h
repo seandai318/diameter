@@ -57,6 +57,8 @@ typedef struct diaConnBlock {
 		osListElement_t* pLE;		//pLE in the peerGroup list
 	} listInfo;
 	transportInfo_t tpInfo;
+	osVPointerLen_t peerHost;		//filled when getting a successful CEA
+	osVPointerLen_t peerRealm;		//filled when getting a successful CEA
 //	struct sockaddr_in peer;
 	diaCmdHdrInfo_t cmdHdrInfo;
 //	transportIpPort_t peerIpPort;

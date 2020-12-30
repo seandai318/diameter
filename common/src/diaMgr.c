@@ -307,16 +307,20 @@ EXIT:
 }
 
 
-
-osStatus_e diaSendAppMsg(diaIntfType_e intfType, osMBuf_t* pMBuf, osPointerLen_t* pSessId, diaNotifyApp_h appCallback, void* appData)
+//if pDcb is NULL, the function will try to find one based on the intfType
+osStatus_e diaSendAppMsg(diaIntfType_e intfType, struct diaConnBlock* pDcb, osMBuf_t* pMBuf, osPointerLen_t* pSessId, diaNotifyApp_h appCallback, void* appData)
 {
 	osStatus_e status = OS_STATUS_OK;
-	diaConnBlock_t* pDcb = diaConnGetActiveDcbByIntf(intfType);
+
 	if(!pDcb)
 	{
-		logError("noa ctive diameter connection exists for intfType(%d).", intfType);
-		status = OS_ERROR_SYSTEM_FAILURE;
-		goto EXIT;
+		pDcb = diaConnGetActiveDcbByIntf(intfType);
+		if(!pDcb)
+		{
+			logError("noa ctive diameter connection exists for intfType(%d).", intfType);
+			status = OS_ERROR_SYSTEM_FAILURE;
+			goto EXIT;
+		}
 	}
 
 	transportStatus_e tpStatus = transport_send(TRANSPORT_APP_TYPE_DIAMETER, pDcb, &pDcb->tpInfo, pMBuf, NULL);

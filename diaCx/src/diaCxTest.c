@@ -12,6 +12,7 @@
 #include "diaCxMar.h"
 #include "diaCxSar.h"
 #include "diaCxAvp.h"
+#include "diaConnState.h"
 
 
 #define CX_USER_NAME	"310970200005171"
@@ -22,6 +23,15 @@
 
 osMBuf_t* testDiaUar()
 {
+    diaConnBlock_t* pDcb = diaConnGetActiveDcbByIntf(DIA_INTF_TYPE_CX);
+    if(!pDcb)
+    {
+        logError("no active diameter connection exists for DIA_INTF_TYPE_CX.");
+        return NULL;
+    }
+    osVPointerLen_t destHost = {pDcb->peerHost.pl, false, false};
+    osVPointerLen_t destRealm = {pDcb->peerRealm.pl, false, false};
+
 	osVPointerLen_t userName = {{CX_USER_NAME, sizeof(CX_USER_NAME)-1}, false, false};
 	osVPointerLen_t pubId = {{PUB_ID, sizeof(PUB_ID)-1}, false, false};
 	osVPointerLen_t visitedNWId = {{VISITED_NW_ID, sizeof(VISITED_NW_ID)-1}, false, false};
@@ -38,7 +48,7 @@ osMBuf_t* testDiaUar()
 	return diaBuildUar(&userName, &pubId, &visitedNWId, authType, &sf, NULL, &diaHdrSessInfo);
 #else
     diaHdrSessInfo_t diaHdrSessInfo;
-    return diaBuildUar(&userName, &pubId, &visitedNWId, authType, 0x4, NULL, &diaHdrSessInfo);
+    return diaBuildUar(&userName, &pubId, &visitedNWId, authType, &destHost, &destRealm, 0x4, NULL, &diaHdrSessInfo);
 #endif
 }
 
@@ -49,10 +59,18 @@ osMBuf_t* testDiaUar()
 
 osMBuf_t* testDiaMar()
 {
+    diaConnBlock_t* pDcb = diaConnGetActiveDcbByIntf(DIA_INTF_TYPE_CX);
+    if(!pDcb)
+    {
+        logError("no active diameter connection exists for DIA_INTF_TYPE_CX.");
+        return NULL;
+    }
+    osVPointerLen_t destHost = {pDcb->peerHost.pl, false, false};
+    osVPointerLen_t destRealm = {pDcb->peerRealm.pl, false, false};
+
 	osVPointerLen_t userName = {{CX_USER_NAME, sizeof(CX_USER_NAME)-1}, false, false};
     osVPointerLen_t pubId = {{PUB_ID, sizeof(PUB_ID)-1}, false, false};
 	osVPointerLen_t serverName = {{SERVER_NAME, sizeof(SERVER_NAME)-1}, false, false};
-	osVPointerLen_t destHost = {{HSS_NAME, sizeof(HSS_NAME)-1}, false, false};
 	diaCxMarSipAuthDataItem_t authData={};
 
 	authData.isReq = true;
@@ -60,17 +78,25 @@ osMBuf_t* testDiaMar()
 	authData.authItem = 1;
 
     diaHdrSessInfo_t diaHdrSessInfo;
-	return diaBuildMar(&userName, &pubId, &authData, &serverName, &destHost, NULL, NULL, &diaHdrSessInfo);
+	return diaBuildMar(&userName, &pubId, &authData, &serverName, &destHost, &destRealm, NULL, NULL, &diaHdrSessInfo);
 }
 
 
 
 osMBuf_t* testDiaSar()
 {
+    diaConnBlock_t* pDcb = diaConnGetActiveDcbByIntf(DIA_INTF_TYPE_CX);
+    if(!pDcb)
+    {
+        logError("no active diameter connection exists for DIA_INTF_TYPE_CX.");
+        return NULL;
+    }
+    osVPointerLen_t destHost = {pDcb->peerHost.pl, false, false};
+    osVPointerLen_t destRealm = {pDcb->peerRealm.pl, false, false};
+
     osVPointerLen_t userName = {{CX_USER_NAME, sizeof(CX_USER_NAME)-1}, false, false};
     osVPointerLen_t pubId = {{PUB_ID, sizeof(PUB_ID)-1}, false, false};
     osVPointerLen_t serverName = {{SERVER_NAME, sizeof(SERVER_NAME)-1}, false, false};
-    osVPointerLen_t destHost = {{HSS_NAME, sizeof(HSS_NAME)-1}, false, false};
 
 	diaCxSarInfo_t sarInfo;
 	sarInfo.serverAssignmentType = DIA_3GPP_CX_REGISTRATION;
@@ -85,6 +111,6 @@ osMBuf_t* testDiaSar()
     sf.flNum = 1;
 
     diaHdrSessInfo_t diaHdrSessInfo;
-    return diaBuildSar(&userName, &pubId, &serverName, &destHost, &sarInfo, &sf, NULL, &diaHdrSessInfo);
+    return diaBuildSar(&userName, &pubId, &serverName, &destHost, &destRealm, &sarInfo, &sf, NULL, &diaHdrSessInfo);
 }
  
