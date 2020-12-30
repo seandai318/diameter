@@ -274,6 +274,8 @@ osStatus_e diaconnMgr_notifyFailover(diaConnBlock_t* pDcb)
            	pDcb->listInfo.pPeerGrp->pConnIntf->intfState = DIA_CONN_INTF_STATE_NONE;
         }
     }
+
+    logInfo("pDcb(%p) is waiting for connection, the associated pConnIntf(%p, intfType=%d) intfState=%d", pDcb, pDcb->listInfo.pPeerGrp->pConnIntf, pDcb->listInfo.pPeerGrp->pConnIntf->intfInfo.intfType, pDcb->listInfo.pPeerGrp->pConnIntf->intfState);
 }
 
 
@@ -306,6 +308,12 @@ osStatus_e diaconnMgr_notifyFailback(diaConnBlock_t* pDcb)
 		}
 	}
 
+	if(!pDcb->listInfo.pPeerGrp->pNextPeer)
+	{
+		pDcb->listInfo.pPeerGrp->pNextPeer = pDcb->listInfo.pPeerGrp->activePeerList.head;
+	}
+
+	logInfo("pDcb(%p) is active, the associated pConnIntf(%p, intfType=%d) intfState=%d", pDcb, pDcb->listInfo.pPeerGrp->pConnIntf,  pDcb->listInfo.pPeerGrp->pConnIntf->intfInfo.intfType, pDcb->listInfo.pPeerGrp->pConnIntf->intfState);
 	return status;
 }
 
@@ -343,13 +351,14 @@ diaConnBlock_t* diaConnGetActiveDcb(diaIntfInfo_t intfInfo)
 {
 	diaConnBlock_t* pDcb = NULL;
 
-	if(intfInfo.intfId >= gIntfNum)
+	if(intfInfo.intfId < 0  || intfInfo.intfId >= gIntfNum)
 	{
 		logError("app provided intfId(%d) is not assigned by connMgr.", intfInfo.intfId);
 		goto EXIT;
 	}
 
 	diaConnIntf_t* pDiaConnIntf	= &gDiaConnIntf[intfInfo.intfId];
+debug("to-remove, intfId=%d, intfState=%d, pDiaConnIntf=%p", intfInfo.intfId, pDiaConnIntf->intfState, pDiaConnIntf);
 	switch(pDiaConnIntf->intfState)
 	{
 		case DIA_CONN_INTF_STATE_NONE:
@@ -382,8 +391,10 @@ diaConnBlock_t* diaConnGetActiveDcbByIntf(diaIntfType_e intfType)
 {
 	diaIntfInfo_t intfInfo = {-1, intfType};
 
+debug("to-remove, gIntfNum=%d", gIntfNum);
 	for(int i=0; i<gIntfNum; i++)
 	{
+debug("to-remove, i=%d, intfType=%d", i, gDiaConnIntf[i].intfInfo.intfType);
 		if(gDiaConnIntf[i].intfInfo.intfType == intfType)
 		{
 			intfInfo.intfId = i;
@@ -468,7 +479,7 @@ static osStatus_e diaConnAddNewPeer(diaConnIntf_t* pConnIntf, diaIntfInfo_t* pIn
 		return OS_ERROR_SYSTEM_FAILURE;
 	}
 
-	logInfo("a pDcb(%p) is created.", pDcb);
+	logInfo("a pDcb(%p) is created, priorityGroup=%s.", pDcb, pConnProv->isPriority ? "yes" : "false");
 
     pDcb->tpInfo.isCom = true;
     pDcb->tpInfo.tpType = TRANSPORT_TYPE_TCP;

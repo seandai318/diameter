@@ -621,7 +621,7 @@ osStatus_e diaConnStateReopen_onMsg(diaConnMsgType_e msgType, diaConnBlock_t* pD
 			{
 				pDcb->isWaitDwa = false;
 				diaConnStateEnterState(DIA_CONN_STATE_OPEN, DIA_CONN_MSG_TYPE_RCV_DWA, pDcb);
-				diaconnMgr_notifyFailback(pDcb);
+				//diaconnMgr_notifyFailback(pDcb);
 
 				pDcb->timerId_watchdog = osRestartTimer(pDcb->timerId_watchdog);
 			}
@@ -752,7 +752,11 @@ osStatus_e diaConnStateEnterState(diaConnState_e newConnState, diaConnMsgType_e 
 	}
 
 	logInfo("current State=%d, new State=%d", pDcb->connState, newConnState);
-	pDcb->connState = newConnState;
+	if(pDcb->connState != newConnState && newConnState == DIA_CONN_STATE_OPEN)
+	{
+		diaconnMgr_notifyFailback(pDcb);
+	}
+    pDcb->connState = newConnState;
 
 EXIT:
 	return status;

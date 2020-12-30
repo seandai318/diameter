@@ -99,9 +99,11 @@ void* diaConfig_getConfig(diaConfig_xmlDataName_e dataName)
 		case DIA_XML_PRODUCT_NAME:
 		case DIA_XML_CONFIG_PEER_IP:
 		case DIA_XML_CONFIG_LOCAL_IP:
+			mdebug(LM_DIA, "dataName=%d, xmlStr=%r.", dataName, &diaConfig_xmlData[dataName].xmlStr);
 			return &diaConfig_xmlData[dataName].xmlStr;
 			break;
 		case DIA_XML_IS_SERVER:
+			mdebug(LM_DIA, "dataName=%d, xmlIsTrue=%d.", dataName, diaConfig_xmlData[dataName].xmlIsTrue);
 			return &diaConfig_xmlData[dataName].xmlIsTrue;
 			break;
 		case DIA_XML_HASH_SIZE:
@@ -119,6 +121,7 @@ void* diaConfig_getConfig(diaConfig_xmlDataName_e dataName)
 		case DIA_XML_CONN_TIMER_TRANSMIT_WAIT_TIME:
 		case DIA_XML_CX_MAX_SERVER_CAPABILITY_ITEM:
 		case DIA_XML_CONFIG_TRANSPORT_TCP_BUFFER_SIZE:
+            mdebug(LM_DIA, "dataName=%d, xmlInt=%d.", dataName, diaConfig_xmlData[dataName].xmlInt);
 			return &diaConfig_xmlData[dataName].xmlInt;
 			break;
 		default:

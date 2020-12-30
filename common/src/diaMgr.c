@@ -88,7 +88,7 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
             goto EXIT;
         }
 
-		logInfo("msg cmdCode=%d.", pDiaDecoded->cmdCode); 
+		logInfo("msg cmdCode=%d, isReq=%s.", pDiaDecoded->cmdCode, pDiaDecoded->cmdFlag & DIA_CMD_FLAG_REQUEST ? "yes" : "no"); 
 		switch(pDiaDecoded->cmdCode)
 		{
 			case DIA_CMD_CODE_CER:
@@ -120,14 +120,18 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
 						goto EXIT;
 					}
 
-				    diaHashData_t* pDiaHashData = pHashLE->data;
+				    diaHashData_t* pDiaHashData = osPlHash_getUserDataByLE(diaHash, pHashLE);
+debug("to-remove, pSessId=%r, pHashLE=%p, waitRespTimerId=0x%lx, appCallback=%p, diaNotifyApp=%p.", pSessId, pHashLE, pDiaHashData->waitRespTimerId, pDiaHashData->appCallback, pDcb->diaNotifyApp);
     				if(pDiaHashData->waitRespTimerId)
 					{
 						pDiaHashData->waitRespTimerId = osStopTimer(pDiaHashData->waitRespTimerId);
 					}
 
 					diaNotifyApp_h notifyApp = pDiaHashData->appCallback ? pDiaHashData->appCallback : pDcb->diaNotifyApp;
-					notifyApp(pDiaDecoded, pDiaHashData->appData);
+					if(notifyApp)
+					{
+						notifyApp(pDiaDecoded, pDiaHashData->appData);
+					}
 
 					dia_deleteHashNode(pHashLE);
 				}
@@ -332,6 +336,7 @@ osStatus_e diaSendAppMsg(diaIntfType_e intfType, osMBuf_t* pMBuf, osPointerLen_t
 		pDiaHashData->pDcb = osmemref(pDcb);
 		osListElement_t* pHashLE = osPlHash_addUserData(diaHash, pSessId, true, pDiaHashData);
 		pDiaHashData->waitRespTimerId = osStartTimer(DIA_REQ_WAIT_RESP_DEFAULT_TIME, dia_onTimeout, pHashLE);
+debug("to-remove, waitRespTimerId=0x%lx, pHashLE=%p, sessId=%r, appCallback=%p", pDiaHashData->waitRespTimerId, pHashLE, pSessId, appCallback);
 	}	
 
 EXIT:
@@ -347,6 +352,7 @@ static void dia_onTimeout(uint64_t timerId, void* ptr)
 		return;
 	}
 
+debug("to-remove, timerId=0x%lx.", timerId);
 	diaHashData_t* pDiaHashData = ((osListElement_t*)ptr)->data;
 	if(timerId != pDiaHashData->waitRespTimerId)
 	{
