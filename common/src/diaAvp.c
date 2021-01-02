@@ -262,7 +262,7 @@ osStatus_e diaAvp_decode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t* avpCo
         case DIA_AVP_DATA_TYPE_IP_FILTER:
         case DIA_AVP_DATA_TYPE_TIME:
         case DIA_AVP_DATA_TYPE_DIAM_IDEN:
-			osVPL_set(&pAvpData->dataStr, &pDiaBuf->buf[pDiaBuf->pos], avpLen - (*avpCode & DIA_AVP_FLAG_VENDOR_SPECIFIC ? 12 : 8), false); 
+			osVPL_set(&pAvpData->dataStr, &pDiaBuf->buf[pDiaBuf->pos], avpLen - (*avpFlag & DIA_AVP_FLAG_VENDOR_SPECIFIC ? 12 : 8), false); 
 			break;
     	case DIA_AVP_DATA_TYPE_INT32:
 			pAvpData->data32 = htobe32(*(uint32_t*)&pDiaBuf->buf[pDiaBuf->pos]);
@@ -277,7 +277,7 @@ osStatus_e diaAvp_decode(osMBuf_t* pDiaBuf, diaCmdCode_e diaCmd, uint32_t* avpCo
             pAvpData->dataU64 = htobe64(*(uint64_t*)&pDiaBuf->buf[pDiaBuf->pos]);
             break;
     	case DIA_AVP_DATA_TYPE_GROUPED:
-			osMBuf_allocRef2(&pAvpData->dataGrouped.rawData, pDiaBuf, pDiaBuf->pos, avpLen - *avpFlag & DIA_AVP_FLAG_VENDOR_SPECIFIC ? 12 : 8);
+			osMBuf_allocRef2(&pAvpData->dataGrouped.rawData, pDiaBuf, pDiaBuf->pos, avpLen - (*avpFlag & DIA_AVP_FLAG_VENDOR_SPECIFIC ? 12 : 8));
 			diaAvp_decodeGroup(&pAvpData->dataGrouped, diaCmd);
 			break;
 		case DIA_AVP_DATA_TYPE_UNKNOWN:

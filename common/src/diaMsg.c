@@ -45,7 +45,7 @@ diaMsgDecoded_t* diaMsg_decode(osMBuf_t* pDiaBuf)
         goto EXIT;
     }
 
-logError("to-remove, cmdCode=%d, cmdFlag=0x%x, len=%d, pos=%d.", pMsgDecoded->cmdCode, pMsgDecoded->cmdFlag, pMsgDecoded->len, pDiaBuf->pos);
+	debug("cmdCode=%d, cmdFlag=0x%x, len=%d, pos=%d.", pMsgDecoded->cmdCode, pMsgDecoded->cmdFlag, pMsgDecoded->len, pDiaBuf->pos);
 
     while(pDiaBuf->pos < pDiaBuf->end)
     {
