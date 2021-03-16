@@ -100,7 +100,14 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
 				//notify appliction, appId is stored in pDcb
 				if(pDiaDecoded->cmdFlag & DIA_CMD_FLAG_REQUEST)
 				{
-					pDcb->diaNotifyApp(pDiaDecoded, NULL);
+					if(pDcb->diaNotifyApp)
+					{
+						pDcb->diaNotifyApp(pDiaDecoded, NULL);
+					}
+					else
+					{
+						logInfo("received a dia request(cmdCode=%d) for pDcb(%p), null diaNotifyApp, drop the message.", pDiaDecoded->cmdCode, pDcb);
+					}
 					break;
 				}
 				else
