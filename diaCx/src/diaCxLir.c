@@ -186,10 +186,13 @@ static osMBuf_t* diaCxLir_encode(diaCxLirParam_t* pLirParam, diaHdrSessInfo_t* p
         }
 	}
 
-	//user-auth-type
+	//user-auth-type, only include in the request if the type is DIA_3GPP_CX_USER_AUTH_TYPE_REG_AND_CAP
 	diaEncodeAvp_t uat = {DIA_AVP_CODE_CX_USER_AUTH_TYPE, (diaEncodeAvpData_u)pLirParam->userAuthType, NULL};
-	osList_append(&lirAvpList, &uat);	
-			
+	if(pLirParam->userAuthType == DIA_3GPP_CX_USER_AUTH_TYPE_REG_AND_CAP)
+	{
+		osList_append(&lirAvpList, &uat);	
+	}
+		
 	if(osList_getCount(pLirParam->pExtraOptAvpList) > 0)
 	{
 		diaEncodeAvp_t *pAvpProxyInfo, *pAvpRRInfo;

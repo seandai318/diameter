@@ -16,6 +16,7 @@
 
 
 static osStatus_e diaCxSar_encodeRestInfo(osMBuf_t* pDiaBuf, void* pData);
+static osMBuf_t* diaCxSar_encode(diaCxSarParam_t* pSarParam, diaHdrSessInfo_t* pHdrSessInfo);
 
 
 osStatus_e diaCx_sendSAR(diaCxSarAppInput_t* pSarInput, diaNotifyApp_h appCallback, void* pAppData)
@@ -109,7 +110,7 @@ EXIT:
 	*[ Proxy-Info ]
 	*[ Route-Record ]
 */
-osMBuf_t* diaCxSar_encode(diaCxSarParam_t* pSarParam, diaHdrSessInfo_t* pHdrSessInfo)
+static osMBuf_t* diaCxSar_encode(diaCxSarParam_t* pSarParam, diaHdrSessInfo_t* pHdrSessInfo)
 {
     osStatus_e status = OS_STATUS_OK;
     osMBuf_t* pDiaBuf = NULL;
