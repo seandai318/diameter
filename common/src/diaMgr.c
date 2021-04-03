@@ -128,7 +128,7 @@ void diaMgr_onMsg(diaTransportMsg_t* pTpMsg)
 					}
 
 				    diaHashData_t* pDiaHashData = osPlHash_getUserDataByLE(diaHash, pHashLE);
-debug("to-remove, pSessId=%r, pHashLE=%p, waitRespTimerId=0x%lx, appCallback=%p, diaNotifyApp=%p.", pSessId, pHashLE, pDiaHashData->waitRespTimerId, pDiaHashData->appCallback, pDcb->diaNotifyApp);
+					debug("pSessId=%r, pHashLE=%p, waitRespTimerId=0x%lx, appCallback=%p, diaNotifyApp=%p.", pSessId, pHashLE, pDiaHashData->waitRespTimerId, pDiaHashData->appCallback, pDcb->diaNotifyApp);
     				if(pDiaHashData->waitRespTimerId)
 					{
 						pDiaHashData->waitRespTimerId = osStopTimer(pDiaHashData->waitRespTimerId);

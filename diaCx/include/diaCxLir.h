@@ -30,7 +30,7 @@ typedef enum {
 
 
 //this structure is used by diaCx_sendLIR() to pass information to diaLir_encode()
-typedef struct diaCxSarParam {
+typedef struct {
 	diaRealmHost_t realmHost;
     osVPointerLen_t pubId;
 	dia3gppUserAuthType_e userAuthType;
